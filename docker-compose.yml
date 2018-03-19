@@ -19,5 +19,7 @@ services:
     volumes:
       - ./db:/var/lib/mysql
     environment:
-      - MYSQL_ROOT_PASSWORD=docker
-      - MYSQL_DATABASE=db_heavymetaldk
+      MYSQL_ROOT_PASSWORD: docker
+      MYSQL_DATABASE: db_heavymetaldk
+      MYSQL_USER: hmdk
+      MYSQL_PASSWORD: NZFggfNgbnNv
