@@ -1,10 +1,10 @@
 language: node_js
 install:
   - npm install
+script:
 env:
   global:
     - "FTP_USER=user"
     - "FTP_PASSWORD=password"
 after_success:
   gulp deploy --user $FTP_USER --password $FTP_PASSWORD
-after_success:
