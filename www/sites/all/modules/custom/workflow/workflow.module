@@ -1,0 +1,785 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function workflow_menu() {
+  $items['admin/config/system/editor_messages'] = array(
+    'title' => 'Edit editor messages',
+    'description' => 'Edit the message note for reviewers displayed on the dashboard.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_editor_messages_settings_form'),
+    'access arguments' => array('edit editor messages'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'workflow.admin.inc',
+  );
+  $items['admin/config/system/add_interview_request'] = array(
+    'title' => 'Add interview request',
+    'description' => 'Add a new interview request to be displayed on the dashboard.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_add_interview_request_form'),
+    'access arguments' => array('add interview request'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'workflow.admin.inc',
+  );
+  $items['admin/config/system/edit_interview_request/%'] = array(
+    'title' => 'Edit interview request',
+    'description' => 'Edit existing interview request.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_edit_interview_request_form'),
+    'access arguments' => array('add interview request'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'workflow.admin.inc',
+  );
+  $items['admin/config/system/delete_interview_request/%'] = array(
+    'title' => 'Delete interview request',
+    'description' => 'Delete existing interview request.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_delete_interview_request'),
+    'access arguments' => array('add interview request'),
+    'type' => MENU_CALLBACK,
+    'file' => 'workflow.admin.inc',
+  );
+  $items['bands/autocomplete'] = array(
+    'title' => 'Autocomplete for bands',
+    'page callback' => '_bands_autocomplete',
+    'access arguments' => array('add interview request'),
+    'type' => MENU_CALLBACK
+  );
+  return $items;
+}
+
+function _bands_autocomplete($string) {
+  $matches = array();
+  $result = db_select('node', 'n')
+    ->fields('n', array('nid', 'title'))
+    ->condition('title', '%' . db_like($string) . '%', 'LIKE')
+    ->condition('type', 'artist')
+    ->execute();
+
+  foreach ($result as $row) {
+    $matches[$row->title] = check_plain($row->title);
+  }
+
+  drupal_json_output($matches);
+}
+
+/**
+ * Unpromote nodes from frontpage that are no longer in the top on every cron run.
+ */
+function workflow_cron() {
+
+  // Build array of current frontpage item node ID's:
+  $front = views_get_view_result('frontpage_mosaic');
+  $current_frontpage_nids = array();
+  foreach ($front as $obj) {
+    $current_frontpage_nids[] = $obj->nid;
+  }
+
+  // Unpromote every node not in current frontpage
+  $upd = db_update('node')
+    ->fields(array(
+      'promote' => 0,
+    ))
+    ->condition('promote', 1)
+    ->condition('nid', $current_frontpage_nids, 'NOT IN');
+
+  $upd_rev = db_update('node_revision')
+    ->fields(array(
+      'promote' => 0,
+    ))
+    ->condition('promote', 1)
+    ->condition('nid', $current_frontpage_nids, 'NOT IN');
+
+  $num_updated = $upd->execute();
+  $num_rev_updated = $upd_rev->execute();
+
+  if ($num_updated > 0) {
+    watchdog('workflow', 'Unpromoted %num nodes from frontpage on cron run.', array('%num' => $num_updated), WATCHDOG_INFO, NULL);
+  }
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function workflow_block_info() {
+  $blocks['block-unreviewed-releases'] = array(
+    'info' => t('Unreviewed releases'),
+  );
+  $blocks['block-my-reviews'] = array(
+    'info' => t('My reviews'),
+  );
+  $blocks['block-reviews-in-progress'] = array(
+    'info' => t('Reviews in progress'),
+  );
+  $blocks['block-latest-activity'] = array(
+    'info' => t('Latest activity'),
+  );
+  $blocks['block-editor-messages'] = array(
+    'info' => t('Editor messages'),
+  );
+  $blocks['block-accreditations'] = array(
+    'info' => t('Accreditations'),
+  );
+  $blocks['block-interview-requests'] = array(
+    'info' => t('Interview requests'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function workflow_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-unreviewed-releases':
+      $block['subject'] = t('Unreviewed releases');
+      $block['content'] = theme('block-unreviewed-releases', array('content' => _block_unreviewed_releases()));
+      break;
+    case 'block-my-reviews':
+      $block['subject'] = t('My reviews');
+      $block['content'] = theme('block-my-reviews', array('content' => _block_my_reviews()));
+      break;
+    case 'block-reviews-in-progress':
+      $block['subject'] = t('Reviews in progress');
+      $block['content'] = theme('block-reviews-in-progress', array('content' => _block_reviews_in_progress()));
+      break;
+    case 'block-latest-activity':
+      $block['subject'] = t('Latest activity');
+      $block['content'] = theme('block-latest-activity', array('content' => _block_latest_activity()));
+      break;
+    case 'block-editor-messages':
+      $block['subject'] = t('Editor messages');
+      $block['content'] = theme('block-editor-messages', array('content' => _block_editor_messages()));
+      break;
+    case 'block-accreditations':
+      $block['subject'] = t('Concert accreditations');
+      $block['content'] = theme('block-accreditations', array('content' => _block_accreditations()));
+      break;
+    case 'block-interview-requests':
+      $block['subject'] = t('Interview requests');
+      $block['content'] = theme('block-interview-requests', array('content' => _block_interview_requests()));
+      break;
+  }
+  return $block;
+}
+
+
+/**
+ * Implements hook_theme().
+ */
+function workflow_theme() {
+  return array(
+    'block-unreviewed-releases' => array(
+      'template' => 'block--block-unreviewed-releases',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-my-reviews' => array(
+      'template' => 'block--block-my-reviews',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-reviews-in-progress' => array(
+      'template' => 'block--block-reviews-in-progress',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-latest-activity' => array(
+      'template' => 'block--block-latest-activity',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-editor-messages' => array(
+      'template' => 'block--block-editor-messages',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-accreditations' => array(
+      'template' => 'block--block-accreditations',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-interview-requests' => array(
+      'template' => 'block--block-interview-requests',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_permission().
+ */
+function workflow_permission() {
+  return array(
+    'delete unreviewed releases' => array(
+      'title' => t('Delete unreviewed releases'),
+    ),
+    'edit editor messages' => array(
+      'title' => t('Edit editor messages'),
+    ),
+    'add interview request' => array(
+    'title' => t('Administer interview requests'),
+  )
+  );
+}
+
+/**
+ * Get deadline.
+ *
+ * @return Returns an HTML human-readable date string in either green or red.
+ */
+function _deadline($ts, $priority) {
+  $deadline = $ts - 259200; // 3 days
+  if ($priority == 0) { // Low priority
+    $deadline = $ts + 5184000; // 60 days
+  } else if ($priority == 1) { // Medium priority
+    $deadline = $ts + 1209600; // 14 days
+  }
+
+  $now = time();
+  if ($deadline > $now) {
+    $interval = $deadline - $now;
+    return '<span style="color:green">' . format_interval($interval) . " " . t('left') . '</span>';
+  } else {
+    $interval = $now - $deadline;
+    return '<span style="color:red">' . t('Exceeded by') . " " . format_interval($interval) . '</span>';
+  }
+}
+
+/**
+ * Get the first artist genre by release.
+ *
+ * @param $release_nid Node ID of the release's artist to lookup.
+ * @return string|bool Returns a genre name if found. FALSE otherwise.
+ */
+function _get_artist_genre_by_release($release_nid) {
+  $query = db_select('taxonomy_term_data', 't');
+  $query->fields('t', array('name'));
+  $query->join('field_data_field_artist_genres', 'g', 'g.field_artist_genres_tid = t.tid');
+  $query->join('field_data_field_artist', 'a', 'a.field_artist_target_id = g.entity_id');
+  $query->condition('a.entity_id', $release_nid);
+  $query->range(0, 1);
+  $obj = $query->execute()->fetchObject();
+
+  if (is_object($obj)) {
+    return $obj->name;
+  }
+  return FALSE;
+}
+
+/**
+ * Creates a sortable table displaying releases with no reviews attached.
+ */
+function _block_unreviewed_releases() {
+
+  $element = 0; // Integer to distinguish between multiple pagers on same page.
+
+  $header = array(
+    array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Priority'), 'field' => 'field_priority_value'),
+    array('data' => t('Release date'), 'field' => 'field_release_date_value', 'sort' => 'desc'),
+    t('Deadline'),
+    array('data' => t('Artist genre')),
+    array('data' => t('Actions')),
+    array('data' => t('Create review')),
+  );
+
+  # set the database table
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')->element($element)
+    ->limit(20)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title'));
+  $query->fields('d', array('field_release_date_value'));
+  $query->fields('p', array('field_priority_value'));
+  $query->join('field_data_field_release_date', 'd', 'd.entity_id = n.nid');
+  $query->leftJoin('field_data_field_priority', 'p', 'p.entity_id = n.nid');
+  $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'release');
+  $query->condition('r.entity_id', NULL);
+
+  $results = $query->execute();
+
+  # build the table fields
+  $rows = array();
+  foreach ($results as $row) {
+    $rows[] = array(
+      $row->title,
+      _priority($row->field_priority_value),
+      format_date($row->field_release_date_value, 'displaydate_short'),
+      _deadline($row->field_release_date_value, $row->field_priority_value),
+      _get_artist_genre_by_release($row->nid),
+      l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
+      l(t('Create review'), 'node/add/review', array('query' => array('release_nid' => $row->nid))),
+    );
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $rows ));
+
+  # add the pager
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+
+  global $pager_total_items;
+
+  $form = drupal_get_form('_delete_unreviewed_form', $pager_total_items[0]);
+
+  return array(
+    'form' => $form,
+    'table' => $output,
+    'count' => $pager_total_items[0],
+  );
+}
+
+function _priority($priority) {
+  $none = '(' . t('None') . ')';
+  $low = '<span style="color:green;font-weight:bold;">' . t('Low') . '</span>';
+  $medium = '<span style="color:#dadc0a;font-weight:bold;">' . t('Medium') . '</span>';
+  $high = '<span style="color:red;font-weight:bold;">' . t('High') . '</span>';
+
+  if ($priority == NULL) {
+    return $none;
+  }
+  switch ($priority) {
+    case 0:
+      return $low;
+    case 1:
+      return $medium;
+    case 2:
+      return $high;
+  }
+}
+
+/**
+ * Creates a sortable table displaying reviews currently in progress.
+ */
+function _block_reviews_in_progress() {
+
+  $element = 1; // Integer to distinguish between multiple pagers on same page.
+  $num_per_page = 25;
+
+  $header = array(
+    array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Priority'), 'field' => 'field_priority_value'),
+    array('data' => t('Release date'), 'field' => 'field_release_date_value'),
+    t('Deadline'),
+    array('data' => t('Author'), 'field' => 'name', 'sort' => 'asc'),
+    array('data' => t('Actions')),
+  );
+
+  # set the database table
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')->element($element)
+    ->limit($num_per_page)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title', 'uid'));
+  $query->fields('d', array('field_release_date_value'));
+  $query->fields('p', array('field_priority_value'));
+  $query->fields('u', array('name'));
+  $query->join('field_data_field_release', 'r', 'r.entity_id = n.nid');
+  $query->join('field_data_field_release_date', 'd', 'd.entity_id = r.field_release_target_id');
+  $query->leftJoin('field_data_field_priority', 'p', 'p.entity_id = r.field_release_target_id');
+  $query->join('users', 'u', 'n.uid = u.uid');
+  $query->condition('n.status', 0);
+  $query->condition('n.type', 'review');
+
+  $results = $query->execute();
+
+  # build the table fields
+  $rows = array();
+  foreach ($results as $row) {
+    $rows[] = array(
+      l($row->title, 'node/' . $row->nid),
+      _priority($row->field_priority_value),
+      format_date($row->field_release_date_value, 'displaydate_short'),
+      _deadline($row->field_release_date_value, $row->field_priority_value),
+      $row->name,
+      l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
+    );
+  }
+  $output = theme('table', array('header' => $header, 'rows' => $rows));
+
+  # add the pager
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+
+  global $pager_total_items;
+
+  return array(
+    'table' => $output,
+    'count' => $pager_total_items[1],
+  );
+}
+
+/**
+ * Defines a button form to delete all unreviewed releases.
+ */
+function _delete_unreviewed_form($form, &$form_state, $num) {
+  $form = array();
+
+  $onclick = "return confirm('" . t('This button deletes all @num unreviewed releases. This action cannot be undone. Are you sure you want to proceed?', array('@num' => $num)) . "');";
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Delete all unreviewed releases'),
+    '#attributes' => array(
+      'onclick' => $onclick,
+    ),
+  );
+
+  return $form;
+}
+
+/**
+ * Defines a button form to delete all unreviewed releases.
+ */
+function _delete_unreviewed_form_submit($form, &$form_state) {
+  if (user_access('delete unreviewed releases')) {
+    $query = db_select('node', 'n');
+    $query->fields('n', array('nid'));
+    $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
+    $query->condition('n.status', 1);
+    $query->condition('n.type', 'release');
+    $query->condition('r.entity_id', NULL);
+
+    $results = $query->execute();
+    $num_deleted = 0;
+    foreach ($results as $row) {
+      node_delete($row->nid);
+      $num_deleted++;
+    }
+
+    drupal_set_message(t('@num releases were deleted.', array('@num' => $num_deleted)));
+  }
+}
+
+/**
+ * Implement hook_form_alter(). Pre-selects a target release in review add form from get parameter 'release_nid'.
+ */
+function workflow_form_alter(&$form, $form_state, $form_id) {
+  if (isset($_GET['release_nid'])) {
+    $release_nid = $_GET['release_nid'];
+    if ($form_id == 'review_node_form' && arg(1) == 'add' && is_numeric($release_nid)) {
+      $node = node_load($release_nid);
+      if ($node->type == 'release') {
+	$form['field_release'][LANGUAGE_NONE][0]['target_id']['#entity'] = $node;
+	$form['field_release'][LANGUAGE_NONE][0]['target_id']['#default_value'] = $node->title . ' (' . $node->nid . ')';
+      }
+    }
+  }
+}
+
+/**
+ * Creates a table displaying unpublished reviews that the currently logged in user is responsible for.
+ * (I.e. the unpublished review nodes the user is the author of).
+ */
+function _block_my_reviews() {
+
+  global $user;
+
+  $header = array(t('Title'), t('Actions'));
+
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid', 'title'));
+  $query->condition('n.type', 'review');
+  $query->condition('n.status', 0);
+  $query->condition('n.uid', $user->uid);
+  $query->orderBy('n.title');
+  $results = $query->execute();
+
+  $rows = array();
+  foreach ($results as $row) {
+    $rows[] = array(
+      $row->title,
+      l(t('edit'), 'node/' . $row->nid . '/edit'),
+    );
+  }
+
+  if (count($rows) > 0) {
+    $output = '<p>' . t('Reviews assigned to you:') . "</p>\n";
+    $output.= theme('table', array('header' => $header, 'rows' => $rows ));
+  } else {
+    $output = '<p>' . t('You currently have no reviews.') . "</p>\n";
+  }
+
+  return $output;
+}
+
+/**
+ * Creates a table displaying when each board member has published a review.
+ */
+function _block_latest_activity() {
+  $header = array(t('User'), t('Latest publish'));
+  $rows = array();
+  $roles = array(4, 5); // reviewer and editor
+
+  // Get all reviewers:
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid', 'name'));
+  $query->join('users_roles', 'r', 'r.uid = u.uid');
+  $query->condition('r.rid', $roles);
+  $query->orderBy('u.name');
+  $results = $query->execute();
+
+  // Get the date of their latest review publish:
+  foreach ($results as $row) {
+    $query = db_select('publication_date', 'd');
+    $query->fields('d', array('published_at'));
+    $query->join('node', 'n', 'n.nid = d.nid');
+    $query->condition('n.uid', $row->uid);
+    $query->condition('n.status', 1);
+    $query->condition('n.type', 'review');
+    $query->orderBy('d.published_at', 'DESC');
+    $query->range(0, 1);
+    $pub = $query->execute()->fetchObject();
+
+    $rows[] = array(
+      'user' => l($row->name, 'user/' . $row->uid),
+      'date' => (is_object($pub)) ? $pub->published_at : NULL,
+    );
+  }
+
+  // Sort rows by date:
+  usort($rows, "sort_latest_activity");
+
+  // Make date column human-readable:
+  $now = time();
+  for ($i = 0; $i < count($rows); $i++) {
+    if ($rows[$i]['date'] > 0) {
+      $interval = $now - $rows[$i]['date'];
+      $rows[$i]['date'] = format_interval($interval) . ' ' . t('ago');
+    } else {
+      $rows[$i]['date'] = t('Never');
+    }
+  }
+
+  return theme('table', array('header' => $header, 'rows' => $rows ));;
+}
+
+function sort_latest_activity($a, $b) {
+  if ($a['date'] == $b['date']) {
+    return 0;
+  }
+  return ($a['date'] < $b['date']) ? 1 : -1;
+}
+
+function _block_editor_messages() {
+  $message = variable_get('workflow_editor_messages');
+  $form = drupal_get_form('_edit_messages_form');
+
+  return array(
+    'message' => $message['value'],
+    'can_edit' => (user_access('edit editor messages')) ? TRUE : FALSE,
+    'form' => $form,
+  );
+}
+
+function _block_interview_requests() {
+  $element = 5; // Integer to distinguish between multiple pagers on same page.
+
+  $header = array(
+    array('data' => t('Band'), 'field' => 'artist'),
+    array('data' => t('Interview request date'), 'field' => 'request_date'),
+    array('data' => t('Interview execution date'), 'field' => 'execution_date'),
+    array('data' => t('Type'), 'field' => 'type'),
+    array('data' => t('Interviewer'), 'field' => 'interviewer_uid'),
+    array('data' => t('Completed'), 'field' => 'completed'),
+    array('data' => t('Approved'), 'field' => 'approved'),
+    t('Actions'),
+  );
+
+  $query = db_select('workflow_interview_requests', 'i')
+    ->extend('PagerDefault')->element($element)
+    ->limit(10)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('u', array('name'));
+  $query->fields('i', array(
+    'id',
+    'artist',
+    'request_date',
+    'execution_date',
+    'type',
+    'interviewer_uid',
+    'completed',
+    'approved',
+  ));
+  $query->join('users', 'u', 'u.uid = i.interviewer_uid');
+  $query->orderBy('i.id');
+  $results = $query->execute();
+
+  $interviews = array();
+  foreach ($results as $row) {
+    $interviews[] = array(
+      'artist' => $row->artist,
+      'request_date' => (strlen($row->request_date) > 0) ? format_date($row->request_date, 'displaydate_short') : '<span style="color:red">' . t('No') . '</span>',
+      'execution_date' => (strlen($row->execution_date) > 0) ? format_date($row->execution_date, 'displaydate_short') : '<span style="color:red">' . t('Date unknown') . '</span>',
+      'type' => $row->type,
+      'interviewer_uid' => l($row->name, 'user/' . $row->interviewer_uid),
+      'completed' => $row->completed,
+      'approved' => ($row->approved) ? t('Yes') : t('No'),
+      'actions' =>
+        l(t('edit'), 'admin/config/system/edit_interview_request/' . $row->id) . '&emsp;' .
+        l(t('delete'), 'admin/config/system/delete_interview_request/' . $row->id, array('attributes' => array('onclick' => 'return confirm( "Er du sikker på du vil slette denne interview-forespørgsel?" ); ' ))),
+    );
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $interviews));
+
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+
+  global $pager_interview_requests_total_items;
+
+  $form = drupal_get_form('_new_interview_request_form');
+
+  return array(
+    'table' => $output,
+    'count' => $pager_interview_requests_total_items[1],
+    'form' => $form,
+  );
+}
+
+function _block_accreditations() {
+  $element = 4; // Integer to distinguish between multiple pagers on same page.
+
+  $days = 4;
+  $limit = 86400 * $days;
+  $date_limit = time() - $limit;
+
+  $header = array(
+    array('data' => t('Concert'), 'field' => 'title'),
+    t('Venue'),
+    array('data' => t('Date'), 'field' => 'field_event_date_value', 'sort' => 'asc'),
+    t('Reviewers'),
+    array('data' => t('Status'), 'field' => 'field_concert_status_value'),
+    t('Photographer'),
+    t('Actions'),
+  );
+
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')->element($element)
+    ->limit(10)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title'));
+  $query->fields('r', array('field_reviewers_target_id'));
+  $query->fields('u', array('name'));
+  $query->fields('s', array('field_concert_status_value'));
+  $query->fields('p', array('field_photographer_value'));
+  $query->fields('pn', array('field_photographer_name_value'));
+  $query->fields('f', array('field_is_festival_value'));
+  $query->fields('v', array('field_venue_tid'));
+  $query->fields('d', array('field_event_date_value', 'field_event_date_value2'));
+  $query->leftJoin('field_data_field_concert', 'c', 'c.field_concert_target_id = n.nid');
+  $query->leftJoin('field_data_field_reviewers', 'r', 'r.entity_id = n.nid');
+  $query->join('field_data_field_concert_status', 's', 's.entity_id = n.nid');
+  $query->join('field_data_field_photographer', 'p', 'p.entity_id = n.nid');
+  $query->leftJoin('field_data_field_photographer_name', 'pn', 'pn.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'e', 'e.entity_id = n.nid');
+  $query->leftJoin('users', 'u', 'u.uid = r.field_reviewers_target_id');
+  $query->join('field_data_field_is_festival', 'f', 'f.entity_id = n.nid');
+  $query->join('field_data_field_venue', 'v', 'v.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
+  $query->condition('n.status', 1);
+  $query->condition('n.type', 'concert');
+  $query->isNull('c.field_concert_target_id');
+  $query->condition('e.field_event_date_value', $date_limit, '>');
+  $or = db_or();
+  $or->condition('p.field_photographer_value', 1);
+  $or->isNotNull('r.field_reviewers_target_id');
+  $query->condition($or);
+  $query->orderBy('e.field_event_date_value');
+
+  $results = $query->execute();
+
+  $concerts = array();
+  foreach ($results as $row) {
+
+    $title_parts = explode(" - ", $row->title);
+    $venue = taxonomy_term_load($row->field_venue_tid);
+    $title = "<strong>" . $title_parts[0] . "</strong>";
+
+    $date = format_date($row->field_event_date_value, 'displaydate_short');
+    if ($row->field_is_festival_value == 1 && $row->field_event_date_value2 != $row->field_event_date_value) {
+      $date .= " - " .  format_date($row->field_event_date_value2, 'displaydate_short');
+    }
+
+    $concerts[$row->nid] = array(
+      'concert' => $title,
+      'venue' => $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'],
+      'date' => $date,
+      'reviewer_uid' => $concerts[$row->nid]['reviewer_uid'],
+      'status' => _status($row->field_concert_status_value),
+      'photographer' => $row->field_photographer_value == 1 ? t('Yes') : '',
+      'actions' => l(t('edit'), 'node/' . $row->nid . '/edit'),
+    );
+    $concerts[$row->nid]['reviewer_uid'][] = l($row->name, 'user/' . $row->field_reviewers_target_id);
+
+    if ($row->field_photographer_value == 1 && strlen($row->field_photographer_name_value) > 0) {
+      $concerts[$row->nid]['photographer'].= " (" . $row->field_photographer_name_value . ")";
+    }
+  }
+  foreach ($concerts as $nid => $concert) {
+    $concerts[$nid]['reviewer_uid'] = implode(", ", $concerts[$nid]['reviewer_uid']);
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $concerts));
+
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+
+  global $pager_accreditations_total_items;
+
+  return array(
+    'table' => $output,
+    'count' => $pager_accreditations_total_items[1],
+  );
+}
+
+function _status($status) {
+  if ($status == -1) {
+    return '<span style="color:red;font-weight:bold;">' . t('Mail not sent') . '</span>';
+  } else if ($status == 0) {
+    return '<span style="color:#dadc0a;font-weight:bold;">' .t('Pending') . '</span>';
+  } else if ($status == 1) {
+    return '<span style="color:green;font-weight:bold;">' . t('Approved') . '</span>';
+  }
+}
+
+/**
+ * Defines a button form to go to the edit editor messages page.
+ */
+function _edit_messages_form($form, &$form_state) {
+  $form = array();
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('Edit editor messages'),
+  );
+  return $form;
+}
+
+function _edit_messages_form_submit($form, &$form_state) {
+  drupal_goto('admin/config/system/editor_messages');
+}
+
+/**
+ * Defines a button form to go to the edit editor messages page.
+ */
+function _new_interview_request_form($form, &$form_state) {
+  $form = array();
+  $form['delete'] = array(
+    '#type' => 'submit',
+    '#value' => t('New interview request'),
+  );
+  return $form;
+}
+
+function _new_interview_request_form_submit($form, &$form_state) {
+  drupal_goto('admin/config/system/add_interview_request');
+}

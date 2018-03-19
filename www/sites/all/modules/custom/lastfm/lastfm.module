@@ -1,0 +1,313 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function lastfm_menu() {
+  $items['lastfm'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_lastfm',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+    $items['lastfm_genres'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_lastfm_genres',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+  $items['lastfm_artist_genres'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => '_lastfm_artist_genres',
+    'access arguments' => array('access content'),
+    'access callback' => TRUE,
+  );
+  return $items;
+}
+
+function download_page($path){
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL,$path);
+	curl_setopt($ch, CURLOPT_FAILONERROR,1);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION,1);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
+	curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+	$retValue = curl_exec($ch);			 
+	curl_close($ch);
+	return $retValue;
+}
+
+function _lastfm_artist_genres() {
+  # Enable Error Reporting and Display:
+  error_reporting(~0);
+  ini_set('display_errors', 1);
+  header('Content-Type:text/plain');
+  $matches = 0;
+  
+  $sql = "SELECT n.nid, n.title, g.field_artist_genres_tid ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_artist_genres g ON g.entity_id = n.nid ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND g.field_artist_genres_tid IS NULL ";
+  
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'artist'));
+  foreach ($rs as $row) {
+
+    $genres = lookup_artist_genre($row->title);
+   
+    if (count($genres) > 0) {
+      $node = node_load($row->nid);
+      $node->field_artist_genres[LANGUAGE_NONE][]['tid'] = $genres[0];
+     
+      node_save($node);
+	    $matches++;
+    }
+  }
+  
+   echo "Matches = " . $matches;
+}
+
+function _lastfm_genres() {
+  # Enable Error Reporting and Display:
+  error_reporting(~0);
+  ini_set('display_errors', 1);
+
+  $matches = 0;
+  header('Content-Type: text/plain;charset=utf-8');
+  $apikey = "4b3207e16b62f1ce0e50e2d6d0e6b391";
+  
+  $sql = "SELECT n.nid, n.title, a.field_artist_target_id AS artist_nid, rt.field_release_title_value AS release_title ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_genre g ON g.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_artist a ON a.entity_id = r.field_release_target_id ";
+  $sql.= "INNER JOIN field_data_field_release_title rt ON rt.entity_id = r.field_release_target_id ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND g.entity_id IS NULL ";
+  $sql.= "ORDER BY n.nid DESC ";
+  //$sql.= "LIMIT 100";
+  
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'review'));
+  foreach ($rs as $row) {
+	$artist_name = _node_title($row->artist_nid);
+	
+	$url = "http://ws.audioscrobbler.com/2.0/?method=album.gettoptags&artist=" . $artist_name . "&album=" . $row->release_title . "&api_key=" . $apikey;
+	$contents = download_page($url);
+	
+	//echo "\n\n" . $artist_name . " - " . $row->release_title . ": " . $url . "\n";
+	
+	$xml = new DOMDocument();
+    $xml->loadXML($contents);
+	
+	$tags = $xml->getElementsByTagName("tag");
+	
+	$genres = array();
+	foreach ($tags as $tag) {
+	  $tag_url = $tag->getElementsByTagName("url")->item(0)->nodeValue;
+	  $tag_name = $tag->getElementsByTagName("name")->item(0)->nodeValue;
+	  $genre_tid = _get_genre_term_tid($tag_url);
+	  if (is_numeric($genre_tid) && !in_array($genres)) {
+		$genres[] = $genre_tid;
+		if (count($genres) == 2) {
+		  break;
+		}
+	  }
+	}
+	
+	
+	// Look up artist genres if no genres for the album:
+	if (count($genres) == 0) {
+	  $genres = lookup_artist_genre($artist_name);
+	}
+	
+	if (count($genres) > 0) {
+	  
+	  $node = node_load($row->nid);
+      
+      $field_related_bands = array();
+      foreach ($genres as $genre) {
+        $node->field_genre[LANGUAGE_NONE][]['target_id'] = $genre;
+      }
+	  
+	  node_save($node);
+	  $matches++;
+	  
+	}
+	
+  }
+  
+  echo "Matches = " . $matches;
+
+}
+
+function lookup_artist_genre($artist_name) {
+  $url = "http://ws.audioscrobbler.com/2.0/?method=artist.gettoptags&artist=" . $artist_name . "&api_key=4b3207e16b62f1ce0e50e2d6d0e6b391";
+  $contents = download_page($url);
+
+  
+  $xml = new DOMDocument();
+  $xml->loadXML($contents);
+  
+  $tags = $xml->getElementsByTagName("tag");
+  $genres = array();
+  
+	foreach ($tags as $tag) {
+	  $tag_url = $tag->getElementsByTagName("url")->item(0)->nodeValue;
+	  $genre_tid = _get_genre_term_tid($tag_url);
+	  if (is_numeric($genre_tid) && !in_array($genres)) {
+		$genres[] = $genre_tid;
+		if (count($genres) == 2) {
+		  break;
+		}
+	  }
+	}
+  return $genres;
+}
+
+function _get_genre_term_tid($url) {
+  $tids = array(
+	'https://www.last.fm/tag/alternative+metal' => 1686,
+	'https://www.last.fm/tag/avantgarde+metal' => 1786,
+	'https://www.last.fm/tag/avant-garde+metal' => 1786,
+	'https://www.last.fm/tag/black+metal' => 1687,
+	'https://www.last.fm/tag/death+metal' => 1688,
+	'https://www.last.fm/tag/old+school+death+metal' => 1688,
+	'https://www.last.fm/tag/technical+death+metal' => 1688,
+	'https://www.last.fm/tag/brutal+death+metal' => 1688,
+	'https://www.last.fm/tag/deathcore' => 1800,
+	'https://www.last.fm/tag/doom+metal' => 1689,
+	'https://www.last.fm/tag/doom' => 1689,
+	'https://www.last.fm/tag/extreme+metal' => 1788,
+	'https://www.last.fm/tag/folk+metal' => 1690,
+	'https://www.last.fm/tag/glam+metal' => 1789,
+	'https://www.last.fm/tag/gothic+metal' => 1691,
+	'https://www.last.fm/tag/goth+metal' => 1691,
+	'https://www.last.fm/tag/hard+rock' => 1692,
+	'https://www.last.fm/tag/hardrock' => 1692,
+	'https://www.last.fm/tag/hardcore' => 1785,
+	'https://www.last.fm/tag/heavy+metal' => 1784,
+	'https://www.last.fm/tag/industrial+metal' => 1693,
+	'https://www.last.fm/tag/melodic+black+metal' => 1821,
+	'https://www.last.fm/tag/melodic+death+metal' => 1694,
+	'https://www.last.fm/tag/melodic+metal' => 1790,
+	'https://www.last.fm/tag/metalcore' => 1695,
+	'https://www.last.fm/tag/nu+metal' => 1795,
+	'https://www.last.fm/tag/nwobhm' => 1696,
+	'https://www.last.fm/tag/new+wave+of+british+heavy+metal' => 1696,
+	'https://www.last.fm/tag/post+hardcore' => 1810,
+	'https://www.last.fm/tag/power+metal' => 1697,
+	'https://www.last.fm/tag/progressive+heavy+metal' => 1698,
+	'https://www.last.fm/tag/progressive+metal' => 1698,
+	'https://www.last.fm/tag/prog+rock' => 1805,
+	'https://www.last.fm/tag/progressive+rock' => 1805,
+	'https://www.last.fm/tag/progressive+black+metal' => 1809,
+	'https://www.last.fm/tag/progressive+death+metal' => 1793,
+	'https://www.last.fm/tag/psychedelic+rock' => 1802,
+	'https://www.last.fm/tag/punk' => 1787,
+	'https://www.last.fm/tag/rock' => 1780,
+	'https://www.last.fm/tag/sludge+metal' => 1699,
+	'https://www.last.fm/tag/speed+metal' => 1700,
+	'https://www.last.fm/tag/stoner+rock' => 1833,
+	'https://www.last.fm/tag/symphonic+black+metal' => 1701,
+	'https://www.last.fm/tag/symphonic+metal' => 1702,
+	'https://www.last.fm/tag/symphonic+power+metal' => 1806,
+	'https://www.last.fm/tag/tech+metal' => 1794,
+	'https://www.last.fm/tag/match+metal' => 1794,
+	'https://www.last.fm/tag/thrash+metal' => 1703,
+	'https://www.last.fm/tag/thrash' => 1703,
+	'https://www.last.fm/tag/viking+metal' => 1704,
+  );
+  return $tids[strtolower($url)];
+}
+
+function _lastfm() {
+  # Enable Error Reporting and Display:
+  error_reporting(~0);
+  ini_set('display_errors', 1);
+
+  header('Content-Type: text/plain;charset=utf-8');
+  $apikey = "4b3207e16b62f1ce0e50e2d6d0e6b391";
+  $matches = 0;
+  
+  $sql = "SELECT n.nid, n.title ";
+  $sql.= "FROM node n ";
+  $sql.= "LEFT JOIN field_data_field_related_bands r ON r.entity_id = n.nid ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND r.entity_id IS NULL AND n.nid > :maxnid ";
+  //$sql.= "LIMIT 10";
+
+  $rs = db_query($sql, array(':status' => 1, ':type' => 'artist', ':maxnid' => 28000));
+
+  foreach ($rs as $row) {
+    $url = "http://ws.audioscrobbler.com/2.0/?method=artist.getsimilar&artist=" . $row->title . "&api_key=" . $apikey;
+    $contents = download_page($url);
+    
+    $xml = new DOMDocument();
+    $xml->loadXML($contents);
+    
+    $similar_artist_nids = array();
+    $artists = $xml->getElementsByTagName("artist");
+    foreach( $artists as $artist ) {
+      $name = $artist->getElementsByTagName("name")->item(0)->nodeValue;
+      
+      $nid = _get_artist_nid($name);
+      
+      if ($nid != null && _has_reviews($nid)) {
+        $similar_artist_nids[] = $nid;
+      }
+    }
+
+    if (count($similar_artist_nids) > 0) {
+        
+      $node = node_load($row->nid);
+      
+      //usort($similar_artist_nids, "compare_by_reviews");
+      
+      $field_related_bands = array();
+      for ($i = 0; $i < 5; $i++) {
+        if (is_numeric($similar_artist_nids[$i])) {
+          $field_related_bands[LANGUAGE_NONE][]['target_id'] = $similar_artist_nids[$i];
+          $matches++;
+        }
+      }
+      
+      if (count($field_related_bands) > 0) {
+        $node->field_related_bands = $field_related_bands;
+        node_save($node);
+      }
+    }
+  }
+  
+  echo "Matches = " . $matches;
+  
+  return NULL;
+}
+
+function _get_artist_nid($artist_name) {
+  $sql = "SELECT nid FROM node WHERE title = :artist_name";
+  return db_query($sql, array(":artist_name" => $artist_name))->fetchField();
+}
+
+function _node_title($nid) {
+  $sql = "SELECT title FROM node WHERE nid = :nid";
+  return db_query($sql, array(":nid" => $nid))->fetchField();
+}
+
+function _has_reviews($artist_nid) {
+  $sql = "SELECT COUNT(*) AS num ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_artist a ON a.entity_id = r.field_release_target_id ";
+  $sql.= "WHERE n.type = :type AND n.status = :status AND a.field_artist_target_id = :nid";
+  
+  $num = db_query($sql, array(':status' => 1, ':type' => 'review', ':nid' => $artist_nid))->fetchField();
+  return ($num > 0) ? TRUE : FALSE;
+}
+
+function compare_by_reviews($nid_a, $nid_b)
+{
+    $a = _has_reviews($nid_a);
+    $b = _has_reviews($nid_b);
+    
+    if ($a == $b) {
+        return 0;
+    }
+    return ($a < $b) ? -1 : 1;
+}

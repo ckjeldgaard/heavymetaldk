@@ -1,0 +1,139 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function statistics_block_info() {
+  $blocks['block-stats'] = array(
+    'info' => 'Statistics',
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function statistics_block_view($delta) {
+  $block = array();
+  switch ($delta) {
+    case 'block-stats':
+      $block['subject'] = 'Statistics';
+      $block['content'] = theme('block-stats', statistics_contents());
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function statistics_theme() {
+  return array(
+    'block-stats' => array(
+      'template' => 'block--stats',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'statistics'),
+    ),
+  );
+}
+
+function statistics_contents() {
+  $countries = _artist_countries();
+  $ratings = _rating_distribution();
+  $ratings_last_year = _rating_distribution(mktime(0, 0, 0, 1, 1, (date('Y') - 1)), mktime(0, 0, 0, 1, 1, date('Y')));
+  $ratings_year = _rating_distribution(mktime(0, 0, 0, 1, 1, date('Y')));
+  return array(
+    'artist_countries' => $countries,
+    'ratings_overall' => $ratings,
+    'ratings_last_year' => $ratings_last_year,
+    'ratings_year' => $ratings_year,
+  );
+}
+
+function _artist_countries() {
+  $countries = array();
+  $exotic_countries = array();
+  $limit = 15;
+  
+  $sql = "SELECT l.name AS country, COUNT(*) AS quantity, r.entity_id AS release_id, n.title ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_artist a ON a.entity_id = r.field_release_target_id ";
+  $sql.= "INNER JOIN field_data_field_country c ON c.entity_id = a.field_artist_target_id ";
+  $sql.= "INNER JOIN countries_country l ON c.field_country_iso2 = l.iso2 ";
+  $sql.= "WHERE n.type = :type ";
+  $sql.= "GROUP BY country ";
+  $sql.= "ORDER BY quantity DESC ";
+  
+  $rs = db_query($sql, array(':type' => 'review'));
+  $c = 0;
+  foreach ($rs as $row) {
+    if ($c < $limit) {
+      $countries[] = array(
+        'country' => $row->country,
+        'quantity' => $row->quantity,
+      );
+    } else {
+      $count_others = $countries[$limit]['quantity'] += $row->quantity;
+      $countries[$limit] = array(
+        'country' => 'Andre lande',
+        'quantity' => $count_others,
+      );
+      
+      if ($row->quantity == 1) {
+        $exotic_countries[] = array(
+          'nid' => $row->release_id,
+          'country' => $row->country,
+          'title' => $row->title,
+        );
+      }
+    }
+    $c++;
+  }
+  
+  $return = array(
+    'countries' => $countries,
+    'exotic_countries' => $exotic_countries
+  );
+  return $return;
+}
+
+function _rating_distribution($start_time = NULL, $end_time = NULL) {
+  
+  if ($end_time == NULL) {
+    $end_time = time();
+  }
+  
+  $ratings = array(
+    1 => 0,
+    2 => 0,
+    3 => 0,
+    4 => 0,
+    5 => 0,
+    6 => 0,
+    7 => 0,
+    8 => 0,
+    9 => 0,
+    10 => 0
+  );
+  $params = array(':type' => 'review');
+  
+  $sql = "SELECT r.field_rating_value, COUNT(*) AS quantity ";
+  $sql.= "FROM field_data_field_rating r ";
+  if (is_numeric($start_time)) {
+    $sql.= "INNER JOIN publication_date p ON r.entity_id = p.nid ";
+    $sql.= "WHERE r.bundle = :type AND p.published_at > :start_time AND p.published_at < :end_time ";
+    $params[':start_time'] = $start_time;
+    $params[':end_time'] = $end_time;
+  } else {
+    $sql.= "WHERE r.bundle = :type ";
+  }
+  $sql.= "GROUP BY r.field_rating_value ";
+  
+  $rs = db_query($sql, $params);
+  foreach ($rs as $row) {
+    $ratings[$row->field_rating_value] = $row->quantity;
+  }
+  
+  return $ratings;
+}

@@ -1,0 +1,39 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function contest_schema() {
+  $schema['contest_answers'] = [
+    'description' => 'Holds all contest answers from authenticated users.',
+    'fields' => [
+      'id' => [
+        'description' => 'Unique identifier',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ],
+      'contest_nid' => [
+        'description' => 'Node id of the contest',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'uid' => [
+        'description' => 'Id of the user',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+      'correct' => [
+        'description' => 'Whether the user answered all questions correct or not.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+      ],
+      'created' => [
+        'description' => 'Time the user participated in the contest.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ],
+    ],
+    'primary key' => ['id'],
+  ];
+}

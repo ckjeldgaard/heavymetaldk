@@ -1,0 +1,208 @@
+<?php
+// $Id: xpoll.module Exp $
+
+require_once('xpoll.admin.inc');
+
+/**
+ * Implements hook_preprocess_node(). Preprocesses poll nodes.
+ */
+function xpoll_preprocess_node(&$variables) {
+  $node = $variables['node'];
+  if ($node->type == 'poll') { 
+
+    $closed = $node->field_closed[LANGUAGE_NONE][0]['value'];
+	$type = $node->field_multiple_choice[LANGUAGE_NONE][0]['value'] ? 'checkboxes' : 'radios';
+	
+    $form = drupal_get_form('xpoll_form', $node->field_poll_questions, $closed, $type, $node);
+    $node->poll_form = $form;
+    
+    $node->warning = ($closed) ? t('This poll is closed for voting.') : FALSE;
+  }
+}
+
+/**
+ * Defines the contest form with questions and answers in radio buttons.
+ */
+function xpoll_form($form, &$form_state, $questions, $closed, $type, $node) {
+  $form = array();
+  $form['#attributes'] = array('id' => array('poll-form'));
+  
+  for ($i = 0; $i < count($questions[LANGUAGE_NONE]); $i++) {
+    $question = field_collection_item_load($questions[LANGUAGE_NONE][$i]['value']);
+	
+    $answer_options = array();
+	$j = 0;
+    foreach ($question->field_poll_option[LANGUAGE_NONE] as $option) {
+	  $option_value = $option['safe_value'];
+	  if (isset($question->field_poll_option_link) && $question->field_poll_option_link[LANGUAGE_NONE][$j]) {
+		$option_value.= " · (" . l(
+		  (isset($node->field_link_text[LANGUAGE_NONE][0]['value'])) ? $node->field_link_text[LANGUAGE_NONE][0]['value'] : "Link",
+		  $question->field_poll_option_link[LANGUAGE_NONE][$j]['url'],
+		  array(
+			'html' => TRUE,
+      'absolute' => TRUE
+		  )
+		) . ")"; 
+	  }
+	  
+      $answer_options[$option['safe_value']] = $option_value;
+	  $j++;
+    }
+
+    $form['poll_question_' . $question->item_id] = array(
+      '#type' => $type,
+      '#title' => check_plain($question->field_question[LANGUAGE_NONE][0]['value']),
+      '#options' => $answer_options,
+      '#disabled' => $closed,
+    );
+  }
+  
+  $form['email'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#disabled' => $closed,
+  );
+  $form['newsletter'] = array(
+    '#type' => 'checkbox',
+    '#title' => "Ja tak, tilmeld mig Heavymetal.dk's nyhedsbrev",
+  );
+
+  $form['poll_nid'] = array('#type' => 'hidden', '#value' => arg(1));
+  $form['poll_type'] = array('#type' => 'hidden', '#value' => $type);
+  
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Send'),
+    '#disabled' => $closed,
+  );
+  
+  return $form;
+}
+
+function xpoll_form_validate($form, &$form_state) {
+  if (!valid_email_address($form_state['values']['email'])) {
+    form_set_error('email', t('Please enter a valid email address.'));
+  }
+  
+  // Check if user has already voted:
+  $sql = "SELECT COUNT(email) from xpoll_answers WHERE email = :email AND poll_nid = :poll_nid";
+  $num = db_query($sql, array(':email' => $form_state['values']['email'], ':poll_nid' => arg(1)))->fetchField();
+  if ($num > 0) {
+    form_set_error('email', t('You have already voted in this poll.'));
+  }
+  
+  // Check for no answers at all:
+  $answers = array();
+  $answer_field = NULL;
+  foreach ($form_state['values'] as $k => $v) {
+    if (substr($k, 0, 14) == 'poll_question_') {
+      if ($answer_field == NULL) {
+		$answer_field = $k;
+      }
+      $parts = explode('_', $k);
+	  if ($form_state['values']['poll_type'] == 'radios') {
+		if (strlen($v) > 0) {
+		  $answers[$parts[2]] = $v;
+		}
+	  } else {
+		// Checkboxes:
+		$opts = array();
+		foreach($v as $opt_key => $opt_val) {
+		  if ($opt_val != '0') {
+			$opts[] = $opt_val;
+		  }
+		}
+		$answers[$parts[2]] = $opts;
+	  }
+    }
+  }
+  
+  if (count($answers) == 0) {
+    form_set_error($answer_field, t('You must answer at least one question.'));
+  }
+
+}
+
+function xpoll_form_submit($form, &$form_state) {
+
+  $poll_node = node_load($form_state['values']['poll_nid']);
+  
+  if ($form_state['values']['newsletter'] == 1) {
+    $list_details = mailchimp_get_lists();
+    reset($list_details);
+    $list_id = key($list_details);
+    $list_name = $list_details[$list_id]['name'];
+    $mergevars = array(
+      'EMAIL' => $form_state['values']['email'],
+    );
+    $result = mailchimp_subscribe($list_id, $form_state['values']['email'], $mergevars, 0, 0);
+    if (empty($result)) {
+      watchdog('xpoll', 'There was a problem signing %email up to newsletter list %list.', array('%email' => $form_state['values']['email'], '%list' => $list_name), WATCHDOG_ERROR);
+    } else {
+      watchdog('xpoll', 'Successfully signing %email up to newsletter list %list.', array('%email' => $form_state['values']['email'], '%list' => $list_name), WATCHDOG_INFO);
+    }
+  }
+  
+  // Check poll is not closed:
+  if ($poll_node->field_closed[LANGUAGE_NONE][0]['value'] == 0) {
+    // Build answer array:
+    $answers = array();
+    foreach ($form_state['values'] as $k => $v) {
+      if (substr($k, 0, 14) == 'poll_question_') {
+		$parts = explode('_', $k);
+		if ($form_state['values']['poll_type'] == 'radios') {
+		  if (strlen($v) > 0) {
+			$answers[$parts[2]] = $v;
+		  }
+		} else {
+		  // Checkboxes:
+		  $opts = array();
+		  foreach($v as $opt_key => $opt_val) {
+			if ($opt_val != '0') {
+			  $opts[] = $opt_val;
+			}
+		  }
+		  $answers[$parts[2]] = $opts;
+		}
+      }
+    }
+  
+    if (count($answers) > 0) { // No reason to save completely empty answers:
+      
+      // Save answer in database as serialized data:
+      db_insert('xpoll_answers')
+		->fields(array(
+		  'poll_nid' => $poll_node->nid,
+		  'answers' => serialize($answers),
+		  'email' => check_plain($form_state['values']['email']),
+		  'ip' => $_SERVER['REMOTE_ADDR'],
+		  'timestamp' => time()
+		))
+		->execute();
+    }
+  }
+  
+  drupal_set_message(t('Thanks. Your vote has been saved.'));
+}
+
+/**
+* Implements hook_mollom_form_list().
+*/
+function xpoll_mollom_form_list() {
+  $forms['poll-form'] = array(
+    'title' => t('Poll form'),
+  );
+  return $forms;
+}
+
+/**
+* Implements hook_mollom_form_info().
+*/
+function xpoll_mollom_form_info() {
+  $form_info = array(
+    'mode' => MOLLOM_MODE_CAPTCHA,
+  );
+  return $form_info;
+}

@@ -1,0 +1,111 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function firebase_schema() {
+  $schema['firebase'] = array(
+    'description' => 'Table containing Firebase database credentials',
+    'fields' => array(
+      'firebase_url' => array(
+        'description' => 'Base URL to Firebase database',
+        'type' => 'varchar',
+        'length' => '256',
+        'not null' => TRUE,
+      ),
+      'firebase_token' => array(
+        'description' => 'Firebase auth token',
+        'type' => 'varchar',
+        'length' => '256',
+        'not null' => TRUE,
+      ),
+    ),
+  );
+  $schema['firebase_subscriptions'] = array(
+    'description' => 'Table containing subscription ID\'s and artists for push notifications.',
+    'fields' => array(
+      'subscription_id' => array(
+        'description' => 'GCM subscription ID',
+        'type' => 'varchar',
+        'length' => '200',
+        'not null' => TRUE,
+      ),
+      'artist_nid' => array(
+        'description' => 'Artist node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Time added.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'ip' => array(
+        'description' => 'IP address for the user creating the subscription.',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('subscription_id', 'artist_nid'),
+  );
+  $schema['firebase_push_log'] = array(
+    'description' => 'Table holding sent push messages.',
+    'fields' => array(
+      'concert_nid' => array(
+        'description' => 'Concert node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'artist_nid' => array(
+        'description' => 'Artist node ID.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'subscription_id' => array(
+        'description' => 'GCM subscription ID.',
+        'type' => 'varchar',
+        'length' => '200',
+        'not null' => TRUE,
+      ),
+      'message_title' => array(
+        'description' => 'Push notification message text title.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'message_body' => array(
+        'description' => 'Push notification message text body.',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+      ),
+      'created' => array(
+        'description' => 'Time of creation',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'message_id' => array(
+        'description' => 'Message ID from FCM',
+        'type' => 'varchar',
+        'length' => '64',
+        'not null' => FALSE,
+      ),
+      'accessed_time' => array(
+        'description' => 'Timestamp when accessed by client to fetch notification body. NULL indicates no access (yet).',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => FALSE,
+      ),
+    ),
+    'primary key' => array('concert_nid', 'artist_nid', 'subscription_id'),
+    'indexes' => array(
+      'accessed_time' => array('accessed_time'),
+      'created' => array('created'),
+    ),
+  );
+
+  return $schema;
+}

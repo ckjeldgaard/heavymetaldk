@@ -1,0 +1,221 @@
+<?php
+
+/*
+function address_block_init() {
+  header('Content-Type:text/plain');
+  
+  $sql = "SELECT CONCAT('/', u.alias) AS url
+FROM node n
+INNER JOIN url_alias u ON  CONCAT('node/', n.nid) = u.source
+WHERE n.status = 1 AND n.type = 'concert_review' AND n.created > 1451606400 AND n.created < 1483228800";
+  
+  $rs = db_query($sql);
+  $urls = array();
+  foreach ($rs as $row) {
+    $urls[] = $row->url;
+  }
+  
+  $file = file_get_contents('/var/www/html/sites/all/modules/custom/address_block/pages.txt');
+  foreach(preg_split("/((\r?\n)|(\r\n?))/", $file) as $line){
+    
+    $parts = explode(",", $line);
+    
+    if (in_array($parts[0], $urls)) {
+      echo $parts[0] . "," . $parts[1] . "\n";
+    }
+  } 
+  
+  die;
+}*/
+
+/**
+ * Implements hook_menu().
+ */
+function address_block_menu() {
+  $items['admin/config/system/address_block'] = array(
+    'title' => 'Address block settings',
+    'description' => 'Change address',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_address_block_settings_form'),
+    'access arguments' => array('administer address block'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function address_block_permission() {
+  return array(
+    'administer address block' => array(
+      'title' => t('Administer address block'),
+    ),
+  );
+}
+
+/**
+ * Defines the address block settings form.
+ */
+function _address_block_settings_form() {
+  $address = _get_address();
+  $form = array();
+  
+  $form['address'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Address'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['address']['organization_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Organization name'),
+    '#default_value' => ($address) ? $address->organization_name : null,
+    '#maxlength' => 127,
+    '#required' => TRUE,
+    '#description' => t('Name of the organization. I.e. heavymetal.dk'),
+  );
+  $form['address']['name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Name'),
+    '#default_value' => ($address) ? $address->name : null,
+    '#maxlength' => 127,
+    '#required' => FALSE,
+    '#description' => t('Address name'),
+  );
+  $form['address']['street_address'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Street address'),
+    '#default_value' => ($address) ? $address->street_address : null,
+    '#maxlength' => 127,
+    '#required' => TRUE,
+    '#description' => t('Street address line'),
+  );
+  $form['address']['postal_code'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Postal code'),
+    '#default_value' => ($address) ? $address->postal_code : null,
+    '#maxlength' => 16,
+    '#required' => TRUE,
+    '#description' => t('Postal code'),
+  );
+  $form['address']['address_locality'] = array(
+    '#type' => 'textfield',
+    '#title' => t('City'),
+    '#default_value' => ($address) ? $address->address_locality : null,
+    '#maxlength' => 127,
+    '#required' => TRUE,
+    '#description' => t('City name / address_locality'),
+  );
+  $form['address']['country'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Country'),
+    '#default_value' => ($address) ? $address->country : null,
+    '#maxlength' => 127,
+    '#required' => TRUE,
+    '#description' => t('Country name'),
+  );
+  $form['address']['email_address'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email address'),
+    '#default_value' => ($address) ? $address->email_address : null,
+    '#maxlength' => 127,
+    '#required' => TRUE,
+    '#description' => t('Email address'),
+  );
+  $form['address']['description'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Description text'),
+    '#default_value' => ($address) ? $address->description : null,
+    '#maxlength' => 255,
+    '#required' => FALSE,
+    '#description' => t('Description text to display above the address.'),
+  );
+  $form['address']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save settings'),
+    '#name' => 'settings'
+  );
+  
+  return $form;
+}
+
+/**
+ * Saves the address to the database.
+ */
+function _address_block_settings_form_submit($form_id, &$form_state) {
+  db_merge('address')
+    ->key(array('id' => 1))
+    ->fields(array(
+      'organization_name' => $form_state['values']['organization_name'],
+      'name' => $form_state['values']['name'],
+      'street_address' => $form_state['values']['street_address'],
+      'postal_code' => $form_state['values']['postal_code'],
+      'address_locality' => $form_state['values']['address_locality'],
+      'country' => $form_state['values']['country'],
+      'email_address' => $form_state['values']['email_address'],
+      'description' => $form_state['values']['description'],
+    ))
+    ->execute();
+  drupal_set_message(t('Address saved.'));
+}
+
+/**
+ * Get the main address.
+ *
+ * @return object Returns the stored addess as an object.
+ */
+function _get_address() {
+  $query = db_select('address', 'a')->fields('a')->range(0, 1);
+  $a = $query->execute()->fetchObject();
+  return is_object($a) ? $a : FALSE;
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function address_block_block_info() {
+  $blocks['block-address-block'] = array(
+    'info' => t('Address block'),
+  );
+  return $blocks;
+}
+ 
+/**
+ * Implements hook_block_view().
+ */
+function address_block_block_view($delta) {
+  
+  $block = array();
+  switch ($delta) {
+    case 'block-address-block':
+      $block['subject'] = t('Address block');
+      $block['content'] = theme('block-address-block', array('content' => _address_block_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function address_block_theme() {
+  return array(
+    'block-address-block' => array(
+      'template' => 'block--address-block',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'address_block'),
+    ),
+  );
+}
+
+/**
+ * Fetches the address block contents from the database.
+ */
+function _address_block_contents() {
+  return _get_address();
+}
+
+function hide_email($email) {
+  $character_set = '+-.0123456789@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz'; $key = str_shuffle($character_set); $cipher_text = ''; $id = 'e'.rand(1,999999999); for ($i=0;$i<strlen($email);$i+=1) $cipher_text.= $key[strpos($character_set,$email[$i])]; $script = 'var a="'.$key.'";var b=a.split("").sort().join("");var c="'.$cipher_text.'";var d="";'; $script.= 'for(var e=0;e<c.length;e++)d+=b.charAt(a.indexOf(c.charAt(e)));'; $script.= 'document.getElementById("'.$id.'").innerHTML="<a href=\\"mailto:"+d+"\\">"+d+"</a>"'; $script = "eval(\"".str_replace(array("\\",'"'),array("\\\\",'\"'), $script)."\")"; $script = '<script type="text/javascript">/*<![CDATA[*/'.$script.'/*]]>*/</script>'; return '<span id="'.$id.'">[javascript protected email address]</span>'.$script;
+}
