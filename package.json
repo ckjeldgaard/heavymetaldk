@@ -1,10 +1,14 @@
 {
   "name": "heavymetal.dk",
   "version": "1.0.0",
-  "description": "",
+  "description": "Heavymetal.dk website",
   "main": "www/index.php",
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/ckjeldgaard/heavymetaldk.git"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No test specified\" && exit 0"
   },
   "author": "Christoffer Kjeldgaard Petersen",
   "license": "MIT",
