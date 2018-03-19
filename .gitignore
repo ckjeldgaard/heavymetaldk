@@ -5,4 +5,5 @@ www/sites/*/settings*.php
 www/sites/*/files
 www/sites/*/private_files
 .idea/
+db/
 *.iml
