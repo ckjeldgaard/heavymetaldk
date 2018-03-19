@@ -3,6 +3,6 @@ www/sites/*/settings*.php
 
 # Ignore paths that contain user-generated content.
 www/sites/*/files
-www/sites/*/private
+www/sites/*/private_files
 .idea/
 *.iml
