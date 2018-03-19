@@ -1,0 +1,19 @@
+{
+  "name": "heavymetal.dk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "www/index.php",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Christoffer Kjeldgaard Petersen",
+  "license": "MIT",
+  "devDependencies": {
+    "gulp-util": "^3.0.8",
+    "minimist": "^1.2.0",
+    "vinyl-ftp": "^0.6.1"
+  },
+  "dependencies": {
+    "gulp": "^3.9.1"
+  }
+}

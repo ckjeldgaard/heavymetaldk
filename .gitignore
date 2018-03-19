@@ -4,6 +4,8 @@ www/sites/*/settings*.php
 # Ignore paths that contain user-generated content.
 www/sites/*/files
 www/sites/*/private_files
+
+node_modules/
 .idea/
 db/
 *.iml
