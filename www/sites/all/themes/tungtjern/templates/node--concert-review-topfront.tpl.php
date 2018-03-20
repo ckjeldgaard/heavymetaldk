@@ -15,7 +15,7 @@
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments" title="<?php print format_plural($node->comment_count, '1 comment', '@count comments'); ?>"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-      <?php endif; ?>  
+      <?php endif; ?>
       </p>
     <h1><?php print l($node->headline, 'node/' . $node->nid); ?></h1>
     <p class="title"><?php print $node->venue; ?></p>
