@@ -9,7 +9,7 @@ function logos_block_info() {
   );
   return $blocks;
 }
- 
+
 /**
  * Implements hook_block_view().
  */
@@ -18,7 +18,7 @@ function logos_block_view($delta) {
   switch ($delta) {
     case 'block-logos':
       $block['subject'] = t('Logos');
-      $block['content'] = theme('block-logos', array('class' => _logos_contents()));
+      $block['content'] = theme('block-logos', array('class' => ''));
       break;
   }
   return $block;
@@ -39,7 +39,7 @@ function logos_theme() {
 
 function _logos_contents() {
   $class = FALSE;
-  
+
   $genres = array(
     1687 => array('black', 'norwegian-black'),
     1688 => array('brutal-death', 'death'),
@@ -50,17 +50,17 @@ function _logos_contents() {
     1697 => 'power',
     1703 => 'thrash',
   );
-  
+
   if (is_numeric(arg(1))) {
     $nid = arg(1);
     $sql = "SELECT g.field_genre_target_id AS genre_id ";
     $sql.= "FROM field_data_field_genre g ";
     $sql.= "WHERE g.bundle = :type AND entity_id = :nid AND delta = :delta LIMIT 1";
-    
+
     $rs = db_query($sql, array(':type' => 'review', ':nid' => $nid, ':delta' => 0));
     foreach ($rs as $row) {
       if (isset($row->genre_id)) {
-        
+
         $g = $genres[$row->genre_id];
         if (is_array($g)) {
           $class = $g[rand(0, 1)];
@@ -70,6 +70,6 @@ function _logos_contents() {
       }
     }
   }
-  
+
   return $class;
 }
