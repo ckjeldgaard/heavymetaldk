@@ -39,6 +39,7 @@ async function changes(basePath, commitRange) {
 
 async function gitFilesChangedSinceLastBuild(commitRange) {
   const diff = 'diff --name-only ' + commitRange;
+  console.log('diff =', diff);
   return new Promise(resolve => {
     git.exec({args : diff}, (err, stdout) => {
       resolve(stdout);
