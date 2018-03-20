@@ -22,5 +22,7 @@ docker-compose up -d --build
 A [Gulp](https://gulpjs.com/) task called `deploy` will upload all www-files changed since last Git commit through FTP. To run the task, run the following command:
 
 ``` bash
-gulp deploy --user '[FTP_USERNAME]' --password '[FTP_PASSWORD]'
+gulp deploy --user '[FTP_USERNAME]' --password '[FTP_PASSWORD]' --commitrange [COMMIT_RANGE]
 ```
+
+The [`$TRAVIS_COMMIT_RANGE`](https://docs.travis-ci.com/user/environment-variables/#Default-Environment-Variables) environment variable is used as `[COMMIT_RANGE]` in Travis CI builds.
