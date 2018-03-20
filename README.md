@@ -16,3 +16,11 @@ docker-compose stop
 # Run webserver and database and force rebuild
 docker-compose up -d --build
 ```
+
+## Deployment
+
+A [Gulp]() task called `deploy` will upload all www-files changed since last Git commit through FTP. To run the task, run the following command:
+
+``` bash
+gulp deploy --user '[FTP_USERNAME]' --password '[FTP_PASSWORD]'
+```
