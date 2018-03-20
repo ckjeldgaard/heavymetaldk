@@ -6,7 +6,7 @@ install:
 cache:
   directories:
   - node_modules
-script: gulp deploy --user $FTP_USER --password $FTP_PASSWORD --branch $TRAVIS_BRANCH
+script: gulp deploy --user $FTP_USER --password $FTP_PASSWORD --commitrange $TRAVIS_COMMIT_RANGE
 env:
   global:
   - secure: FGJ5/b00+4Niwhr24V1DhRYuHl0VYhDuXzjN9ZTvrgGUBr1kvKn3VH4+Ex2GyipuhTMWpPwvRzWKQgYlbclZt8QFCpQsxu88NxUVGRuC4RYBx4OsBgjhOkQZiSripr+t8KNtTQA4SZN76n55VpgZOeExxyBjQocud6WA4RZM5c7gF88Sxg9jCWwdge8IQsmQuW5TW60C192Ba7mpkjWT16tL695qCW1M4lehpc4eFs5HmDQel/PfFPLSdPsUMXZkDIotfwYpEojgGXTtADCmWfjh2mXrgV242x9kDxhTqM+oWgwXqQZW9HgnUgo40BvsFBJtkXGp4UE+nLcsljjPldgLLuynQDhqS/xcPxM+t3UUaalVH0NBGe0vQ9HeD/2DZVC5mGrKQCOKSKGEcFrVS/KkPa3gwSwWH3rjj5NzMFl0PShF3Onx6ODGN4SreDpkKSHIH0mhsBdHME5B/qDidS1xRu5fd0r8gS9/VSEuW8/N8Vm1a8VpIBZeWBL9m5t0sfZfXdV0J1cnZw0WfRAHTfhLpU/9h95I3iOZ4cjj3wgWNHTJFm8kPHR3jiTGUnISjR+bDUYrmjkYtgAjfKqXovO0Xz700hDxvzB2ipdAdN2Crf/nhVvZRKisdBZwgJIAlbcI9Qq5AkywIZAyb0oh4IxABOpW+qPFe6Svynu398k=

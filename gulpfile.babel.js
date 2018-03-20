@@ -18,14 +18,14 @@ gulp.task('deploy', async () => {
     log: gutil.log
   });
 
-  const files = await changes(wwwPath, args.branch);
+  const files = await changes(wwwPath, args.commitrange);
 
   gulp.src(files, {base: wwwPath})
     .pipe(conn.dest(remotePath));
 });
 
-async function changes(basePath, branch) {
-  const files = await gitFilesChangedSinceLastBuild(branch);
+async function changes(basePath, commitRange) {
+  const files = await gitFilesChangedSinceLastBuild(commitRange);
   console.log('Files changed since last build:\n', files);
   const lines = files.split('\n');
   const filesList = [];
@@ -37,8 +37,8 @@ async function changes(basePath, branch) {
   return filesList;
 }
 
-async function gitFilesChangedSinceLastBuild(branch) {
-  const diff = 'diff --name-only @ origin/' + branch;
+async function gitFilesChangedSinceLastBuild(commitRange) {
+  const diff = 'diff --name-only ' + commitRange;
   return new Promise(resolve => {
     git.exec({args : diff}, (err, stdout) => {
       resolve(stdout);
