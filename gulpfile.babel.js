@@ -25,8 +25,8 @@ gulp.task('deploy', async () => {
 });
 
 async function changes(basePath) {
-  const files = await gitFilesChanged();
-  console.log('Files changed since last commit:\n', files);
+  const files = await gitFilesChangedSinceLastBuild();
+  console.log('Files changed since last build:\n', files);
   const lines = files.split('\n');
   const filesList = [];
   for(let i = 0;i < lines.length;i++){
@@ -37,20 +37,10 @@ async function changes(basePath) {
   return filesList;
 }
 
-async function gitFilesChanged() {
-  const commitId = await lastCommit();
-  console.log('commitId', commitId);
-  const diff = 'diff-tree --no-commit-id --name-only -r ' + commitId;
+async function gitFilesChangedSinceLastBuild() {
+  const diff = 'diff --name-only @ origin/master';
   return new Promise(resolve => {
     git.exec({args : diff}, (err, stdout) => {
-      resolve(stdout);
-    });
-  });
-}
-
-function lastCommit() {
-  return new Promise(resolve => {
-    git.exec({args : 'log --format="%H" -n 1'}, (err, stdout) => {
       resolve(stdout);
     });
   });
