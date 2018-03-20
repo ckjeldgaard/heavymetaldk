@@ -42,4 +42,3 @@ Javascript
 PHP
 
   ArchiveTar - Copyright (c) 1997 - 2008 Vincent Blavet
-
