@@ -1,28 +1,43 @@
 'use strict';
 
 import gulp from 'gulp';
-import babel from 'gulp-babel';
 import git from 'gulp-git';
+import ftp from 'vinyl-ftp';
+import gutil from 'gulp-util';
+import minimist from 'minimist';
+
+const args = minimist(process.argv.slice(2));
 
 gulp.task('deploy', async () => {
+  const wwwPath = 'www/';
+  const remotePath = '/web/html/heavymetal.dk/';
+  const conn = ftp.create({
+    host: 'heavymetal.dk',
+    user: args.user,
+    password: args.password,
+    log: gutil.log
+  });
 
-  const files = await filesChanged();
-  console.log('filesChanged', files);
+  const files = await changes(wwwPath);
 
-  return gulp.src('src/**/*.js')
-    .pipe(babel())
-    .pipe(gulp.dest('dist'));
+  gulp.src(files, {base: wwwPath})
+    .pipe(conn.dest(remotePath));
 });
 
-function lastCommit() {
-  return new Promise(resolve => {
-    git.exec({args : 'log --format="%H" -n 1'}, (err, stdout) => {
-      resolve(stdout);
-    });
-  });
+async function changes(basePath) {
+  const files = await gitFilesChanged();
+  console.log('Files changed since last commit:\n', files);
+  const lines = files.split('\n');
+  const filesList = [];
+  for(let i = 0;i < lines.length;i++){
+    if (lines[i].length > 0 && lines[i].startsWith(basePath)) {
+      filesList.push(lines[i]);
+    }
+  }
+  return filesList;
 }
 
-async function filesChanged() {
+async function gitFilesChanged() {
   const commitId = await lastCommit();
   console.log('commitId', commitId);
   const diff = 'diff-tree --no-commit-id --name-only -r ' + commitId;
@@ -33,36 +48,10 @@ async function filesChanged() {
   });
 }
 
-/* var gulp = require('gulp');
-var git = require('gulp-git');
-var ftp = require('vinyl-ftp');
-var gutil = require('gulp-util');
-var minimist = require('minimist');
-var args = minimist(process.argv.slice(2));
-
-gulp.task('deploy', function() {
-  console.log('user', args.user);
-  console.log('password', args.password);
-
-  var l = log();
-  console.log('log = ', l);
-
-  var remotePath = '/web/html/heavymetal.dk/';
-  var conn = ftp.create({
-    host: 'heavymetal.dk',
-    user: args.user,
-    password: args.password,
-    log: gutil.log
+function lastCommit() {
+  return new Promise(resolve => {
+    git.exec({args : 'log --format="%H" -n 1'}, (err, stdout) => {
+      resolve(stdout);
+    });
   });
-  gulp.src(['./www/'])
-    .pipe(conn.dest(remotePath));
-
-});
-
-var log = function() {
-  git.exec({args : 'log --format="%H" -n 1'}, function (err, stdout) {
-    console.log('sdfsdf', stdout);
-    return stdout;
-  });
-};
-*/
+}
