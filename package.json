@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Heavymetal.dk website",
   "main": "www/index.php",
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/ckjeldgaard/heavymetaldk.git"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ckjeldgaard/heavymetaldk.git"
   },
   "scripts": {
     "test": "echo \"No test specified\" && exit 0"
@@ -13,11 +13,14 @@
   "author": "Christoffer Kjeldgaard Petersen",
   "license": "MIT",
   "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^7.0.1",
+    "gulp-git": "^2.5.2",
     "gulp-util": "^3.0.8",
     "minimist": "^1.2.0",
     "vinyl-ftp": "^0.6.1"
-  },
-  "dependencies": {
-    "gulp": "^3.9.1"
   }
 }
