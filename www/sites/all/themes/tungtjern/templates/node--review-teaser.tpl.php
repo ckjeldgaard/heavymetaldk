@@ -23,10 +23,29 @@
         <span class="classic"><i class="fa fa-star"></i> <?php print t('Classic'); ?></span>
       <?php endif; ?>
       </p>
+
+      <?php if (isset($node->field_detektoren[LANGUAGE_NONE]) && $node->field_detektoren[LANGUAGE_NONE][0]['value'] == 1): ?>
+      <div class="pure-g">
+        <div class="pure-u-1 pure-u-sm-5-6 pure-u-md-5-6 pure-u-lg-5-6">
+          <?php endif; ?>
+
       <h1><a href="<?php print url('node/' . $node->nid); ?>"><?php print $node->title; ?>
+
+          <?php if (isset($node->field_detektoren[LANGUAGE_NONE]) && $node->field_detektoren[LANGUAGE_NONE][0]['value'] == 1): ?>
+        </div>
+        <div class="pure-u-1 pure-u-sm-1-6 pure-u-md-1-6 pure-u-lg-1-6 detektoren-wrapper">
+          <div class="detektoren-tooltip">
+            <a href="<?php print url('detektoren'); ?>"><?php print t('Detektoren'); ?></a>
+          </div>
+        </div>
+      </div>
+      <?php endif; ?>
+
       <?php if ($node->release->field_release_type[LANGUAGE_NONE][0]['value'] != 'Album') : ?>
         (<?php print $node->release->field_release_type[LANGUAGE_NONE][0]['value']; ?>)
       <?php endif; ?></a></h1>
+
+
       <?php if (isset($node->field_tagline[LANGUAGE_NONE][0])) : ?>
       <p><?php print $node->field_tagline[LANGUAGE_NONE][0]['value']; ?></p>
       <?php endif; ?>
