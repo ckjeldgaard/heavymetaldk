@@ -1,10 +1,14 @@
-<h1>Detektoren</h1>
-<p><?php print t('Detektoren is Heavymetal.dk\'s featured reviews and interviews.'); ?></p>
-<div class="pure-g detektoren">
-    <div class="pure-u-1-1 pure-u-sm-2-3 l-box reviews">
-      <?php print views_embed_view('detektoren_anmeldelser', 'block_1'); ?>
+<div class="detektoren-page">
+  <div class="pure-g detektoren-overview">
+    <div class="pure-u-1 pure-u-sm-2-3 pure-u-md-2-3 pure-u-lg-2-3">
+      <h1>Detektoren</h1>
+      <p><?php $settings = variable_get('detektoren_overview_text'); print $settings['value']; ?></p>
     </div>
-    <div class="pure-u-1-1 pure-u-sm-1-3 l-box interviews">
-      <?php print views_embed_view('detektoren_interviews', 'block_2'); ?>  
+    <div class="pure-u-1 pure-u-sm-1-3 pure-u-md-1-3 pure-u-lg-1-3">
+      <img src="/sites/all/themes/tungtjern/img/detektoren-logo.png" class="pure-img" alt="Detektoren" />
     </div>
+  </div>
+
+  <?php print views_embed_view('detektoren_anmeldelser', 'block_1'); ?>
+  <?php print views_embed_view('detektoren_interviews', 'block_2'); ?>
 </div>

@@ -2186,3 +2186,27 @@ ul.reportage-shortcuts li a:hover  {
   border-style: solid;
   border-color: transparent transparent transparent #444A54;
 }
+
+.detektoren-overview-logo {
+
+}
+
+.detektoren-overview img {
+  margin: 1em 0;
+}
+
+.detektoren-overview h1 {
+  background: url('/sites/all/themes/tungtjern/img/detektoren-headline.png') no-repeat;
+  height: 120px;
+  text-indent: -99em;
+}
+
+.detektoren-page h2 {
+  color:#d13c38;
+  font-size: 28px;
+  margin-top: 30px;
+}
+
+.detektoren-page .pure-button {
+  margin: 2em 0;
+}

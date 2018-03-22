@@ -1,6 +1,6 @@
-<h2><?php print t('Reviews'); ?></h2>
+<h2 id="anmeldelser"><?php print t('Reviews'); ?></h2>
   <?php if ($rows): ?>
-    <div class="view-content focus-list">
+    <div class="view-content">
       <?php print $rows; ?>
     </div>
   <?php elseif ($empty): ?>

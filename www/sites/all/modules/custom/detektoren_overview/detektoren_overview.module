@@ -1,6 +1,33 @@
 <?php
 
 /**
+ * Implements hook_menu().
+ */
+function detektoren_overview_menu() {
+  $items['admin/config/system/detektoren'] = array(
+    'title' => 'Detektoren settings',
+    'description' => 'Edit the message text for the Detektoren overview page',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_detektoren_settings_form'),
+    'access arguments' => array('edit detektoren'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'detektoren_overview.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function detektoren_overview_permission() {
+  return array(
+    'edit detektoren' => array(
+      'title' => t('Edit Detektoren settings'),
+    )
+  );
+}
+
+/**
  * Implements hook_block_info().
  */
 function detektoren_overview_block_info() {
@@ -9,7 +36,7 @@ function detektoren_overview_block_info() {
   );
   return $blocks;
 }
- 
+
 /**
  * Implements hook_block_view().
  */
@@ -35,7 +62,7 @@ function detektoren_overview_theme() {
       "path" => $path,
       "arguments" => array(
         "content" => NULL,
-        "class" => NULL, 
+        "class" => NULL,
       ),
     ),
   );
