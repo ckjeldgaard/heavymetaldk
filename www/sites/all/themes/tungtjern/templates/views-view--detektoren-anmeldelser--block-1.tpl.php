@@ -1,4 +1,4 @@
-<h2 id="anmeldelser"><?php print t('Reviews'); ?></h2>
+<h2 id="anmeldelser"><?php print t('Detektoren reviews') . ' (' . $view->total_rows . ')'; ?></h2>
   <?php if ($rows): ?>
     <div class="view-content">
       <?php print $rows; ?>
