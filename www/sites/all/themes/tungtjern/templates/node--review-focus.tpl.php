@@ -7,9 +7,9 @@
   </div>
   <a href="<?php print url('node/' . $node->nid); ?>">
     <?php if ($node->type == 'review') : ?>
-    <img data-src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
+    <img src="<?php print image_cache('review', $node->release->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->release->title); ?>" class="pure-img" />
     <?php else: ?>
-    <img data-src="<?php print image_cache('review', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->title); ?>" class="pure-img" />
+    <img src="<?php print image_cache('review', $node->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print check_plain($node->title); ?>" class="pure-img" />
     <?php endif; ?>
   </a>
 
