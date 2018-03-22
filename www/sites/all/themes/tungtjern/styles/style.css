@@ -2207,6 +2207,11 @@ ul.reportage-shortcuts li a:hover  {
   margin-top: 30px;
 }
 
+.detektoren-page h2 span {
+  color:#444A54;
+  font-style: italic;
+}
+
 .detektoren-page .pure-button {
   margin: 2em 0;
 }
