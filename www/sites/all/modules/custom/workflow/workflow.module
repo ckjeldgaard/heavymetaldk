@@ -308,10 +308,11 @@ function _block_unreviewed_releases() {
   # build the table fields
   $rows = array();
   foreach ($results as $row) {
+    $d = $row->field_release_date_value;
     $rows[] = array(
       $row->title,
       _priority($row->field_priority_value),
-      format_date($row->field_release_date_value, 'displaydate_short'),
+      _print_cell(format_date($row->field_release_date_value, 'displaydate_short'), $d),
       _deadline($row->field_release_date_value, $row->field_priority_value),
       _get_artist_genre_by_release($row->nid),
       l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
@@ -334,6 +335,14 @@ function _block_unreviewed_releases() {
     'table' => $output,
     'count' => $pager_total_items[0],
   );
+}
+
+function _print_cell($cell, $date) {
+  if ($date < (mktime() + 60 * 60 * 24)) {
+    return '<span title="' . t('Release date exceeded') .  '" style="background-image: url(\'/sites/all/themes/adminimal_theme/css/images/warning.svg\');background-repeat:no-repeat;width:21px;height:20px;display: inline-block;margin-right: 5px;"></span> ' . $cell;
+  } else {
+    return $cell;
+  }
 }
 
 function _priority($priority) {
@@ -397,7 +406,7 @@ function _block_reviews_in_progress() {
     $rows[] = array(
       l($row->title, 'node/' . $row->nid),
       _priority($row->field_priority_value),
-      format_date($row->field_release_date_value, 'displaydate_short'),
+      _print_cell(format_date($row->field_release_date_value, 'displaydate_short'), $row->field_release_date_value),
       _deadline($row->field_release_date_value, $row->field_priority_value),
       $row->name,
       l(t('edit'), 'node/' . $row->nid . '/edit') . '&emsp;' . l(t('delete'), 'node/' . $row->nid . '/delete'),
