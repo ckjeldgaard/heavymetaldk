@@ -275,5 +275,15 @@ $('.query').on('typeahead:selected', function(event, selection) {
         $(content).fadeIn(400);
       });
 
+      $(".regular").slick({
+        dots: true,
+        infinite: true,
+        autoplay: true,
+        autoplaySpeed: 4000,
+        arrows: false
+        // slidesToShow: 3,
+        // slidesToScroll: 3
+      });
+
   }};
 })(jQuery, Drupal);

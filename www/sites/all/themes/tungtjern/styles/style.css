@@ -2215,3 +2215,8 @@ ul.reportage-shortcuts li a:hover  {
 .detektoren-page .pure-button {
   margin: 2em 0;
 }
+
+.slick-prev:before,
+.slick-next:before {
+  color: black;
+}
