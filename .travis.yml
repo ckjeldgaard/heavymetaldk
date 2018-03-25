@@ -6,6 +6,9 @@ install:
 cache:
   directories:
   - node_modules
+branches:
+  only:
+  - master
 script: gulp deploy --user $FTP_USER --password $FTP_PASSWORD --commitrange $TRAVIS_COMMIT_RANGE
 env:
   global:
