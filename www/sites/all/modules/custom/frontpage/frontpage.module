@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Implements hook_block_info().
+ */
+function frontpage_block_info() {
+  $blocks['block-frontpage'] = array(
+    'info' => t('Frontpage block'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function frontpage_block_view($delta) {
+
+  $block = array();
+  switch ($delta) {
+    case 'block-frontpage':
+      $block['subject'] = t('Frontpage block');
+      $block['content'] = theme('block-frontpage', array('content' => _frontpage_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function frontpage_theme() {
+  return array(
+    'block-frontpage' => array(
+      'template' => 'block--frontpage',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'frontpage'),
+    ),
+  );
+}
+
+/**
+ * Fetches the frontpage block contents from the database.
+ */
+function _frontpage_contents() {
+  return "FRONTPAGE";
+}
