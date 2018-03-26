@@ -3,7 +3,7 @@
   print_r($content);
   ?></pre>
 
-<section class="regular slider">
+<section class="promoted slider">
   <?php for($i = 0; $i < 6; $i++): ?>
   <div>
     <?php $node = node_load(32321); ?>
@@ -26,4 +26,14 @@
   <div>
     <img src="http://placehold.it/350x300?text=6">
   </div> -->
+</section>
+
+<section class="danish slider">
+  <?php for($i = 0; $i < 6; $i++): ?>
+    <div>
+      <?php $node = node_load(32521); ?>
+      <?php $node_view = node_view($node, 'focus'); ?>
+      <?php print render($node_view); ?>
+    </div>
+  <?php endfor; ?>
 </section>

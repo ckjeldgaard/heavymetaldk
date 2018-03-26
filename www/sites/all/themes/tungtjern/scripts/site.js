@@ -275,7 +275,7 @@ $('.query').on('typeahead:selected', function(event, selection) {
         $(content).fadeIn(400);
       });
 
-      $(".regular").slick({
+      $(".promoted").slick({
         dots: true,
         infinite: true,
         autoplay: true,
@@ -283,6 +283,12 @@ $('.query').on('typeahead:selected', function(event, selection) {
         arrows: false
         // slidesToShow: 3,
         // slidesToScroll: 3
+      });
+      $(".danish").slick({
+        dots: true,
+        infinite: true,
+        slidesToShow: 3,
+        slidesToScroll: 3
       });
 
   }};
