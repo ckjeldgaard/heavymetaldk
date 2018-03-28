@@ -281,10 +281,20 @@ $('.query').on('typeahead:selected', function(event, selection) {
         autoplay: true,
         autoplaySpeed: 4000,
         arrows: false
-        // slidesToShow: 3,
-        // slidesToScroll: 3
       });
       $(".danish").slick({
+        dots: true,
+        infinite: true,
+        slidesToShow: 3,
+        slidesToScroll: 3,
+        responsive: [
+          {
+            breakpoint: 480,
+            settings: "unslick"
+          }
+        ]
+      });
+      $(".international").slick({
         dots: true,
         infinite: true,
         slidesToShow: 3,

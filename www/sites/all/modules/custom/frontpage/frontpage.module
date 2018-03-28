@@ -1,5 +1,7 @@
 <?php
 
+require_once('frontpage.country.inc');
+
 /**
  * Implements hook_block_info().
  */
@@ -42,19 +44,15 @@ function frontpage_theme() {
  * Fetches the frontpage block contents from the database.
  */
 function _frontpage_contents() {
-  // echo "<pre>";
 
   $promoted = _promoted_content();
   $country = _country_content($promoted['nid']);
 
-  // print_r($country);
-
   $contents = array();
   $contents['promoted'] = $promoted['nodes'];
-  $contents['danish'] = $country['nodes'];
+  $contents['danish'] = $country['danish'];
+  $contents['international'] = $country['international'];
 
-
-  // echo "</pre>";
 
   return $contents;
 }
@@ -107,26 +105,60 @@ function _promoted_content() {
 }
 
 function _country_content($exclude) {
-  $sql = "SELECT n.nid ";
+  $limit = 12;
+  $nodes = array(
+    'danish' => array(),
+    'international' => array()
+  );
+
+  $i = 0;
+  $continue = true;
+  while ($continue) {
+
+    $items = _fetch_items($exclude, $i * 24);
+    if (count($items) == 0) {
+      break;
+    }
+
+    foreach ($items as $item) {
+      if ($item['danish'] && count($nodes['danish']) < $limit) {
+        $item['classes'] = _get_classes(count($nodes['danish']));
+        $nodes['danish'][] = $item;
+      } else if (!$item['danish'] && count($nodes['international']) < $limit) {
+        $item['classes'] = _get_classes(count($nodes['international']));
+        $nodes['international'][] = $item;
+      }
+    }
+    $i++;
+
+    if (count($nodes['danish']) == $limit && count($nodes['international']) == $limit) {
+      $continue = false;
+    }
+  }
+  return $nodes;
+}
+
+function _fetch_items($exclude, $offset = 0) {
+  $types = array('review', 'concert_review', 'reportage', 'interview', 'blog');
+
+  $sql = "SELECT n.nid, n.type ";
   $sql.= "FROM node n ";
   $sql.= "INNER JOIN publication_date d ON d.nid = n.nid ";
   $sql.= "WHERE n.status = :status AND n.promote = :promote AND n.type IN (:types) AND n.nid NOT IN (:exclude) ";
   $sql.= "ORDER BY d.published_at DESC ";
-  $sql.= "LIMIT 12 ";
-  $rs = db_query($sql, array(':status' => 1, ':promote' => 1, ':types' => _content_types(), ':exclude' => $exclude));
+  $sql.= "LIMIT 24 OFFSET " . $offset;
 
-  $nodes = array();
-  $c = 0;
+  $rs = db_query($sql, array(':status' => 1, ':promote' => 1, ':types' => $types, ':exclude' => $exclude));
+  $items = array();
   foreach ($rs as $row) {
     $node = node_load($row->nid);
     $node_view = node_view($node, 'focus');
 
-    $nodes['nodes'][] = array(
+    $items[] = array(
+      'nid' => $row->nid,
       'view' => render($node_view),
-      'classes' => _get_classes($c)
+      'danish' => _is_danish($row->nid, $row->type)
     );
-    $nodes['nid'][] = $row->nid;
-    $c++;
   }
-  return $nodes;
+  return $items;
 }
