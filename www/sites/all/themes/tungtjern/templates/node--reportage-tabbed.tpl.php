@@ -1,5 +1,5 @@
 <article itemscope itemtype="http://schema.org/WebPage">
-  
+
   <div class="pure-g byline">
   <div class="pure-u-2-3 pure-u-md-4-5">
     <p class="post-meta">
@@ -14,7 +14,7 @@
     <div class="fb-like" data-href="<?php print url('node/' . $node->nid, array('absolute' => TRUE)); ?>" data-layout="button_count" data-action="like" data-show-faces="false" data-share="true"></div>
   </div>
 </div>
-  
+
 <h1><?php print $node->title; ?></h1>
 
 <?php if (isset($node->field_image[LANGUAGE_NONE][0])) : ?>
@@ -101,7 +101,7 @@
 	</div>
       <?php endif; ?>
       <?php if (isset($review->field_author[LANGUAGE_NONE][0]['target_id'])) : ?>
-	<p class="author"><i class="fa fa-user"></i> Anmeldt af <a href="<?php print url("user/" . $review->field_author[LANGUAGE_NONE][0]['target_id']); ?>" itemprop="author"><?php print $review->field_author[LANGUAGE_NONE][0]['entity']->name; ?></a>.</p>
+	<p class="author"><i class="fa fa-user"></i> Af <a href="<?php print url("user/" . $review->field_author[LANGUAGE_NONE][0]['target_id']); ?>" itemprop="author"><?php print $review->field_author[LANGUAGE_NONE][0]['entity']->name; ?></a>.</p>
       <?php endif; ?>
     </div>
     <?php endforeach; ?>

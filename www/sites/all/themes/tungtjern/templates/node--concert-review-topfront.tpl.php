@@ -11,7 +11,7 @@
   <?php endif; ?>
       <p class="post-meta">
         <?php print _get_type($node->type); ?><br />
-        <i class="fa fa-user"></i> Anmeldt af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
+        <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments" title="<?php print format_plural($node->comment_count, '1 comment', '@count comments'); ?>"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>

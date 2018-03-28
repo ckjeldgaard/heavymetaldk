@@ -7,7 +7,7 @@
     <div class="pure-u-1 pure-u-sm-2-3 pure-u-md-7-12 meta">
       <p class="post-meta">
         <?php print _get_type($node->type); ?><br />
-        <i class="fa fa-user"></i> Anmeldt af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
+        <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
 
       <?php if (isset($node->first_genre)) : ?>

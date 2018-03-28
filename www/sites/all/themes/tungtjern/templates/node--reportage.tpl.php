@@ -92,7 +92,7 @@
             </div>
           <?php endif; ?>
           <?php if (isset($review->field_author[LANGUAGE_NONE][0]['target_id'])) : ?>
-            <p class="author"><i class="fa fa-user"></i> Anmeldt af <a href="<?php print url("user/" . $review->field_author[LANGUAGE_NONE][0]['target_id']); ?>" itemprop="author"><?php print $review->field_author[LANGUAGE_NONE][0]['entity']->name; ?></a>.</p>
+            <p class="author"><i class="fa fa-user"></i> Af <a href="<?php print url("user/" . $review->field_author[LANGUAGE_NONE][0]['target_id']); ?>" itemprop="author"><?php print $review->field_author[LANGUAGE_NONE][0]['entity']->name; ?></a>.</p>
           <?php endif; ?>
         </div>
       <?php endforeach; ?>

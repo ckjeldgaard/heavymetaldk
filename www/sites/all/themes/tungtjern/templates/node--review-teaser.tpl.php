@@ -10,7 +10,7 @@
       <p class="post-meta">
         <?php print _get_type($node->type); ?>
         <span class="author">
-          <i class="fa fa-user"></i> Anmeldt af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
+          <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
           <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
         </span>
       <?php if (isset($node->first_genre)) : ?>
@@ -33,7 +33,7 @@
           <?php if ($node->release->field_release_type[LANGUAGE_NONE][0]['value'] != 'Album') : ?>
             (<?php print $node->release->field_release_type[LANGUAGE_NONE][0]['value']; ?>)
           <?php endif; ?></a></h1>
-          
+
           <?php if (isset($node->field_detektoren[LANGUAGE_NONE]) && $node->field_detektoren[LANGUAGE_NONE][0]['value'] == 1): ?>
         </div>
         <div class="pure-u-1 pure-u-sm-1-6 pure-u-md-1-6 pure-u-lg-1-6 detektoren-wrapper">
