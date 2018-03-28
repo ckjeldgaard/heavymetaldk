@@ -42,5 +42,91 @@ function frontpage_theme() {
  * Fetches the frontpage block contents from the database.
  */
 function _frontpage_contents() {
-  return "FRONTPAGE";
+  // echo "<pre>";
+
+  $promoted = _promoted_content();
+  $country = _country_content($promoted['nid']);
+
+  // print_r($country);
+
+  $contents = array();
+  $contents['promoted'] = $promoted['nodes'];
+  $contents['danish'] = $country['nodes'];
+
+
+  // echo "</pre>";
+
+  return $contents;
+}
+
+function _content_types() {
+  return array(
+    'review',
+    'reportage',
+    'poll',
+    'page',
+    'blog',
+    'interview',
+    'concert_review',
+    'contest',
+    'news'
+  );
+}
+
+function _get_classes($c) {
+  $classes = NULL;
+  if ($c % 3 == 0) {
+    $classes = 'first';
+  }
+  if ($c % 3 == 2) {
+    $classes = 'last';
+  }
+  return $classes;
+}
+
+function _promoted_content() {
+  $sql = "SELECT n.nid ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN publication_date d ON d.nid = n.nid ";
+  $sql.= "WHERE n.status = :status AND n.promote = :promote AND n.sticky = :sticky AND n.type IN (:types) ";
+  $sql.= "ORDER BY d.published_at DESC ";
+  $sql.= "LIMIT 4 ";
+  $rs = db_query($sql, array(':status' => 1, ':promote' => 1, ':sticky' => 1, ':types' => _content_types()));
+
+  $nodes = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    $node_view = node_view($node, 'topfront');
+    $nodes['nodes'][] = array(
+      'view' => render($node_view),
+      'classes' => NULL
+    );
+    $nodes['nid'][] = $row->nid;
+  }
+  return $nodes;
+}
+
+function _country_content($exclude) {
+  $sql = "SELECT n.nid ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN publication_date d ON d.nid = n.nid ";
+  $sql.= "WHERE n.status = :status AND n.promote = :promote AND n.type IN (:types) AND n.nid NOT IN (:exclude) ";
+  $sql.= "ORDER BY d.published_at DESC ";
+  $sql.= "LIMIT 12 ";
+  $rs = db_query($sql, array(':status' => 1, ':promote' => 1, ':types' => _content_types(), ':exclude' => $exclude));
+
+  $nodes = array();
+  $c = 0;
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    $node_view = node_view($node, 'focus');
+
+    $nodes['nodes'][] = array(
+      'view' => render($node_view),
+      'classes' => _get_classes($c)
+    );
+    $nodes['nid'][] = $row->nid;
+    $c++;
+  }
+  return $nodes;
 }
