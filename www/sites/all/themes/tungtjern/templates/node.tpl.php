@@ -13,11 +13,11 @@
     <h1><?php print l($node->title, 'node/' . $node->nid); ?></h1>
     <p class="post-meta">
       <?php print _get_type($node->type); ?>
-      <i class="fa fa-user"></i> Skrevet af <?php print l($node->name, 'user/' . $node->uid); ?>,
+      <i class="fa fa-user"></i> Af <?php print l($node->name, 'user/' . $node->uid); ?>,
       <time datetime="<?php print format_date($node->created, 'date'); ?>"><?php print format_date($node->created, 'displaydate'); ?></time>
     <?php if ($node->comments_display) : ?>
       <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-    <?php endif; ?>  
+    <?php endif; ?>
     </p>
     <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
       <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
@@ -34,7 +34,7 @@
 <p class="post-meta">
   <?php print _get_type($node->type); ?>
   <span>
-    <i class="fa fa-user"></i> Skrevet af <?php print l($node->name, 'user/' . $node->uid); ?>,
+    <i class="fa fa-user"></i> Af <?php print l($node->name, 'user/' . $node->uid); ?>,
     <time datetime="<?php print format_date($node->created, 'datetime'); ?>"><?php print drupal_strtolower(format_date($node->created, 'fulldate')); ?></time>
   </span>
   <?php if ($node->comments_display) : ?>

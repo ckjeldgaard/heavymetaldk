@@ -5,7 +5,7 @@
     <p class="post-meta">
       <?php print _get_type($node->type); ?>
       <span class="author">
-        <i class="fa fa-user"></i> Skrevet af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
+        <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
         <?php print formatted_date($node->published_at, TRUE); ?>
       </span>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>

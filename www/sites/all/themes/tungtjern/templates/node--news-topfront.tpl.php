@@ -11,11 +11,11 @@
   <?php endif; ?>
       <p class="post-meta">
         <?php print _get_type($node->type); ?>
-        <i class="fa fa-user"></i> Skrevet af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
+        <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-      <?php endif; ?>  
+      <?php endif; ?>
       </p>
     <h1><?php print l($node->title, 'node/' . $node->nid); ?></h1>
 <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>

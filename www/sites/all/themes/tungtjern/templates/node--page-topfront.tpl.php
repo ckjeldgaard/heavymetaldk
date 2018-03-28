@@ -12,14 +12,14 @@
       <?php if ($node->field_show_byline[LANGUAGE_NONE][0]['value'] == 1) : ?>
       <p class="post-meta">
         <?php print _get_type($node->type); ?>
-        <i class="fa fa-user"></i> Skrevet af <?php print l($node->name, 'user/' . $node->uid); ?>,
+        <i class="fa fa-user"></i> Af <?php print l($node->name, 'user/' . $node->uid); ?>,
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
         <span class="comments"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></span>
-      <?php endif; ?>  
+      <?php endif; ?>
       </p>
       <?php endif; ?>
-      
+
     <h1><?php print l($node->title, 'node/' . $node->nid); ?></h1>
 <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
   <p><?php print truncate_utf8($node->body[LANGUAGE_NONE][0]['summary'], 140, TRUE); ?></p>
