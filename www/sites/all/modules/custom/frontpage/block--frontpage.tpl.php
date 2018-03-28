@@ -29,4 +29,10 @@
     <?php endforeach; ?>
   </section>
 
+  <?php foreach($content['additional'] as $n): ?>
+    <div>
+      <?php print $n['view']; ?>
+    </div>
+  <?php endforeach; ?>
+
 </article>

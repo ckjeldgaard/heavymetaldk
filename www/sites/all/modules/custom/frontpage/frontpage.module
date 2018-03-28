@@ -47,11 +47,13 @@ function _frontpage_contents() {
 
   $promoted = _promoted_content();
   $country = _country_content($promoted['nid']);
+  $additional = _additional_content($promoted['nid']);
 
   $contents = array();
   $contents['promoted'] = $promoted['nodes'];
   $contents['danish'] = $country['danish'];
   $contents['international'] = $country['international'];
+  $contents['additional'] = $additional;
 
 
   return $contents;
@@ -100,6 +102,38 @@ function _promoted_content() {
       'classes' => NULL
     );
     $nodes['nid'][] = $row->nid;
+  }
+  return $nodes;
+}
+
+/**
+ * Excludes content that is more than 2 months old.
+ */
+function _additional_content($exclude) {
+  $date = strtotime("-2 months");
+  $types = array(
+    'contest',
+    'news',
+    'page',
+    'poll'
+  );
+
+  $sql = "SELECT n.nid ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN publication_date d ON d.nid = n.nid ";
+  $sql.= "WHERE n.status = :status AND n.promote = :promote AND n.type IN (:types) AND n.nid NOT IN (:exclude) AND d.published_at > :date ";
+  $sql.= "ORDER BY d.published_at DESC ";
+  $sql.= "LIMIT 5 ";
+  $rs = db_query($sql, array(':status' => 1, ':promote' => 1, ':types' => $types, ':exclude' => $exclude, ':date' => $date));
+
+  $nodes = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    $node_view = node_view($node, 'teaser');
+    $nodes[] = array(
+      'view' => render($node_view),
+      'classes' => NULL
+    );
   }
   return $nodes;
 }
