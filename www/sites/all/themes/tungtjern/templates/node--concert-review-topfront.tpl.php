@@ -27,5 +27,12 @@
     <?php else: ?>
       <p><?php print truncate_utf8(strip_tags($node->body[LANGUAGE_NONE][0]['safe_value']), 140, TRUE, TRUE); ?></p>
     <?php endif; ?>
+
+    <?php if (isset($node->field_rating[LANGUAGE_NONE][0]['value'])) : ?>
+      <p>
+        <span class="rating grade<?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>"><?php print $node->field_rating[LANGUAGE_NONE][0]['value']; ?>/10</span>
+      </p>
+    <?php endif; ?>
+
     </div>
 </section>
