@@ -1131,6 +1131,20 @@ pre {
 
 /* Frontpage mosaic */
 
+.frontpage-mosaic {
+  margin: 15px;
+}
+
+.frontpage-mosaic .focus {
+  border-bottom: none;
+}
+
+.frontpage-mosaic h2 {
+  color:#d13c38;
+  margin-top:35px;
+  font-size: 24px;
+}
+
 .frontpage-mosaic a:link, .frontpage-mosaic a:visited {
   text-decoration:none;
 }
@@ -1140,17 +1154,12 @@ pre {
 }
 
 .frontpage-mosaic .row {
-  border-bottom:1px solid #aaaaaa;
   margin-bottom:15px;
   padding-bottom:15px;
 }
 
 .frontpage-mosaic .type {
   /*color: #000000;*/
-}
-
-.frontpage-mosaic img {
-  border-bottom: 5px solid #d13c38;
 }
 
 .frontpage-mosaic img.lazyloader-icon {
