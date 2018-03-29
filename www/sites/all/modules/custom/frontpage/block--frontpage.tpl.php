@@ -1,7 +1,4 @@
 <article class="frontpage-mosaic">
-  <!-- <pre><?php
-    print_r($content);
-    ?></pre> -->
 
   <section class="promoted slider">
     <?php foreach($content['promoted'] as $n): ?>
