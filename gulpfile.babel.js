@@ -18,20 +18,31 @@ gulp.task('deploy', async () => {
     log: gutil.log
   });
 
-  const files = await changes(wwwPath, args.commitrange);
+  const gitChanges = await gitFilesChangedSinceLastBuild(args.commitrange);
+  console.log('Files changed since last build:\n', gitChanges);
 
-  // gulp.src(files, {base: wwwPath})
-  //   .pipe(conn.dest(remotePath));
+  const modifiedFiles = await changes(gitChanges, wwwPath, ['M', 'A', 'R', 'C']);
+  const deletedFiles = await changes(gitChanges, wwwPath, ['D']);
+
+  gulp.src(modifiedFiles, {base: wwwPath})
+     .pipe(conn.dest(remotePath));
+
+  gulp.src(deletedFiles, {base: wwwPath})
+    .pipe(conn.delete(remotePath,( error, emit ) => {
+        console.error('An error occurred while deleting', error);
+      }
+    ));
 });
 
-async function changes(basePath, commitRange) {
-  const files = await gitFilesChangedSinceLastBuild(commitRange);
-  console.log('Files changed since last build:\n', files);
+async function changes(files, basePath, statuses) {
   const lines = files.split('\n');
   const filesList = [];
   for(let i = 0;i < lines.length;i++){
-    if (lines[i].length > 0 && lines[i].startsWith(basePath)) {
-      filesList.push(lines[i]);
+    if (lines[i].length > 0) {
+      const lineParts = lines[i].split('\t');
+      if (statuses.includes(lineParts[0]) && lineParts[1].startsWith(basePath)) {
+        filesList.push(lineParts[1]);
+      }
     }
   }
   return filesList;
