@@ -12,4 +12,3 @@ be used to restrict themes to a specific site instance.
 
 Refer to the "Appearance" section of the README.txt in the Drupal root
 directory for further information on theming.
-
