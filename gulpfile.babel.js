@@ -32,9 +32,10 @@ gulp.task('deploy', async () => {
 
   if (deletedFiles.length > 0) {
     for(let i = 0; i < deletedFiles.length; i++) {
+      const delFilename = remotePath + deletedFiles[i].substring(wwwPath.length, deletedFiles[i].length);
       gulp.src(deletedFiles, {base: wwwPath})
-        .pipe(conn.delete(remotePath + deletedFiles[i].substring(wwwPath.length, deletedFiles[i].length), (error, emit) => {
-            console.error('An error occurred while deleting ' + deletedFiles[i], error);
+        .pipe(conn.delete(delFilename, (error, emit) => {
+            console.error('An error occurred while deleting ' + delFilename, error);
           }
         ));
     }
