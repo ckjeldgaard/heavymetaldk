@@ -20,8 +20,8 @@ gulp.task('deploy', async () => {
 
   const files = await changes(wwwPath, args.commitrange);
 
-  gulp.src(files, {base: wwwPath})
-    .pipe(conn.dest(remotePath));
+  // gulp.src(files, {base: wwwPath})
+  //   .pipe(conn.dest(remotePath));
 });
 
 async function changes(basePath, commitRange) {
@@ -38,7 +38,7 @@ async function changes(basePath, commitRange) {
 }
 
 async function gitFilesChangedSinceLastBuild(commitRange) {
-  const diff = 'diff --name-only ' + commitRange;
+  const diff = 'diff --name-status ' + commitRange;
   console.log('diff =', diff);
   return new Promise(resolve => {
     if (commitRange.length > 2) {
