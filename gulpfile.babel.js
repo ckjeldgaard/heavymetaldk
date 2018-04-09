@@ -26,15 +26,18 @@ gulp.task('deploy', async () => {
 
   if (modifiedFiles.length > 0) {
     gulp.src(modifiedFiles, {base: wwwPath})
-      .pipe(conn.dest(remotePath));
+      .pipe(conn.dest(remotePath))
+      .pipe(conn.newer( 'server_directory/' ) );
   }
 
   if (deletedFiles.length > 0) {
-    gulp.src(deletedFiles, {base: wwwPath})
-      .pipe(conn.delete(remotePath, (error, emit) => {
-          console.error('An error occurred while deleting', error);
-        }
-      ));
+    for(let i = 0; i < deletedFiles.length; i++) {
+      gulp.src(deletedFiles, {base: wwwPath})
+        .pipe(conn.delete(deletedFiles[i], (error, emit) => {
+            console.error('An error occurred while deleting ' + deletedFiles[i], error);
+          }
+        ));
+    }
   }
 });
 
