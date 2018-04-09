@@ -26,8 +26,7 @@ gulp.task('deploy', async () => {
 
   if (modifiedFiles.length > 0) {
     gulp.src(modifiedFiles, {base: wwwPath})
-      .pipe(conn.dest(remotePath))
-      .pipe(conn.newer( 'server_directory/' ) );
+      .pipe(conn.dest(remotePath));
   }
 
   if (deletedFiles.length > 0) {
