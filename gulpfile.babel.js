@@ -24,14 +24,18 @@ gulp.task('deploy', async () => {
   const modifiedFiles = await changes(gitChanges, wwwPath, ['M', 'A', 'R', 'C']);
   const deletedFiles = await changes(gitChanges, wwwPath, ['D']);
 
-  gulp.src(modifiedFiles, {base: wwwPath})
-     .pipe(conn.dest(remotePath));
+  if (modifiedFiles.length > 0) {
+    gulp.src(modifiedFiles, {base: wwwPath})
+      .pipe(conn.dest(remotePath));
+  }
 
-  gulp.src(deletedFiles, {base: wwwPath})
-    .pipe(conn.delete(remotePath,( error, emit ) => {
-        console.error('An error occurred while deleting', error);
-      }
-    ));
+  if (deletedFiles.length > 0) {
+    gulp.src(deletedFiles, {base: wwwPath})
+      .pipe(conn.delete(remotePath, (error, emit) => {
+          console.error('An error occurred while deleting', error);
+        }
+      ));
+  }
 });
 
 async function changes(files, basePath, statuses) {
