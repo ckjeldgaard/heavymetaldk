@@ -34,8 +34,8 @@ gulp.task('deploy', async () => {
     for(let i = 0; i < deletedFiles.length; i++) {
       const delFilename = remotePath + deletedFiles[i].substring(wwwPath.length, deletedFiles[i].length);
       gulp.src(deletedFiles, {base: wwwPath})
-        .pipe(conn.delete(delFilename, (error, emit) => {
-            console.log('Deleting ' + delFilename, error);
+        .pipe(conn.delete(delFilename, () => {
+            console.log('Deleting ' + delFilename);
           }
         ));
     }
