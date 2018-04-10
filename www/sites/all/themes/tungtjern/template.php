@@ -17,6 +17,35 @@ function tungtjern_theme(&$existing, $type, $theme, $path) {
     'render element' => 'form',
   );
 
+  $fav32 = array(
+    '#tag' => 'link',
+    '#attributes' => array(
+      'rel' => 'icon',
+      'type' => 'image/png',
+      'sizes' => '32x32',
+      'href' => '/sites/all/themes/tungtjern/img/icons/favicon-32x32.png',
+    )
+  );
+  drupal_add_html_head($fav32, 'favicon32x32');
+  $fav16 = array(
+    '#tag' => 'link',
+    '#attributes' => array(
+      'rel' => 'icon',
+      'type' => 'image/png',
+      'sizes' => '16x16',
+      'href' => '/sites/all/themes/tungtjern/img/icons/favicon-16x16.png',
+    )
+  );
+  drupal_add_html_head($fav16, 'favicon16x16');
+  $favicon = array(
+    '#tag' => 'link',
+    '#attributes' => array(
+      'rel' => 'shortcut icon',
+      'href' => '/favicon.ico',
+    )
+  );
+  drupal_add_html_head($favicon, 'shortcut_icon');
+
   return $hooks;
 }
 
