@@ -1135,6 +1135,16 @@ pre {
   margin: 15px;
 }
 
+.frontpage-mosaic .slick-dots {
+  padding-bottom: 15px;
+  border-bottom: 3px solid #eeeeee;
+  bottom: -25px;
+}
+
+.frontpage-mosaic .additional {
+  margin-top: 45px;
+}
+
 .frontpage-mosaic .focus {
   border-bottom: none;
 }

@@ -27,7 +27,7 @@
   </section>
 
   <?php foreach($content['additional'] as $n): ?>
-    <div>
+    <div class="additional">
       <?php print $n['view']; ?>
     </div>
   <?php endforeach; ?>
