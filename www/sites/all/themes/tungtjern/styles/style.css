@@ -1367,7 +1367,7 @@ pre {
 }
 
 .related a:hover{
-  text-decoration:unerline;
+  text-decoration:underline;
 }
 
 .related .info {
@@ -1702,9 +1702,14 @@ table.user-data, table.user-data tr, table.user-data td {
     box-sizing: border-box;
     padding: 0 0 0 10px;
   }
-  .frontpage-mosaic .top .meta,{
+  .frontpage-mosaic .top .meta {
     padding: 0;
   }
+  .frontpage-mosaic section.focus-item {
+    padding-bottom: 20px;
+    border-bottom: 3px solid #eeeeee;
+  }
+
   .review-meta {
     padding: 10px 0 0 0;
   }
