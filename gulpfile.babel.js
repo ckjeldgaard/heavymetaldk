@@ -32,11 +32,15 @@ gulp.task('deploy', async () => {
   if (deletedFiles.length > 0) {
     for(let i = 0; i < deletedFiles.length; i++) {
       const delFilename = remotePath + deletedFiles[i].substring(wwwPath.length, deletedFiles[i].length);
-      gulp.src(deletedFiles, {base: wwwPath})
-        .pipe(conn.delete(delFilename, () => {
-            console.log('Deleting ' + delFilename);
-          }
-        ));
+      try {
+        gulp.src(deletedFiles, {base: wwwPath})
+          .pipe(conn.delete(delFilename, () => {
+              console.log('Deleting ' + delFilename);
+            }
+          ));
+      } catch (error) {
+        console.error('An error occurred when deleting ' + delFilename, error);
+      }
     }
   }
 });
