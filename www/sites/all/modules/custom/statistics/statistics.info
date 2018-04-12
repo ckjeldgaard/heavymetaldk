@@ -7,4 +7,4 @@ package = Heavymetal.dk
 files[] = statistics.module
 files[] = statistics.install
 dependencies[] = firebase
-dependencies[] = url_alias
+dependencies[] = pathauto
