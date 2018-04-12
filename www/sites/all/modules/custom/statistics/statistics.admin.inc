@@ -87,6 +87,7 @@ function _statistics_admin_form($form, &$form_state) {
     ->limit($num_per_page)
     ->extend('TableSort')
     ->orderByHeader($header);
+  $query->distinct();
   $query->fields('n', array('nid', 'title'));
   $query->addField('k', 'field_rating_value', 'rating');
   $query->addField('co', 'name', 'country');
