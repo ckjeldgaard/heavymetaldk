@@ -87,16 +87,15 @@ function _statistics_admin_form($form, &$form_state) {
     ->limit($num_per_page)
     ->extend('TableSort')
     ->orderByHeader($header);
-  $query->distinct();
   $query->fields('n', array('nid', 'title'));
   $query->addField('k', 'field_rating_value', 'rating');
   $query->addField('co', 'name', 'country');
   $query->addField('d', 'published_at');
   $query->addField('p', 'pageviews');
-  $query->join('field_data_field_release', 'r', 'n.nid = r.entity_id');
+  $query->innerJoin('field_data_field_release', 'r', 'n.nid = r.entity_id');
+  $query->innerJoin('field_data_field_artist', 'a', 'r.field_release_target_id = a.entity_id');
   $query->join('publication_date', 'd', 'n.nid = d.nid');
   $query->join('field_data_field_rating', 'k', 'n.nid = k.entity_id');
-  $query->join('field_data_field_artist', 'a', 'r.field_release_target_id = a.entity_id');
   $query->leftJoin('field_data_field_country', 'c', 'a.field_artist_target_id = c.entity_id');
   $query->leftJoin('countries_country', 'co', 'co.iso2 = c.field_country_iso2');
   $query->leftJoin('analytics_pageviews', 'p', 'p.nid = n.nid');
@@ -105,6 +104,7 @@ function _statistics_admin_form($form, &$form_state) {
   $query->condition('d.published_at', $start_time, '>');
   $query->condition('d.published_at', $end_time, '<');
   $query->orderBy('d.published_at');
+  $query->groupBy('n.nid');
 
   $results = $query->execute();
 
