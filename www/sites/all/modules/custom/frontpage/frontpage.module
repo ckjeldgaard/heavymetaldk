@@ -52,6 +52,7 @@ function _frontpage_contents() {
   $contents = array();
   $contents['promoted'] = $promoted['nodes'];
   $contents['danish'] = $country['danish'];
+  $contents['danish_concerts'] = _concerts('da');
   $contents['international'] = $country['international'];
   $contents['additional'] = $additional;
 
@@ -136,6 +137,51 @@ function _additional_content($exclude) {
     );
   }
   return $nodes;
+}
+
+function _concerts($country = 'da') {
+  echo "<pre>";
+
+  $num_concerts = 5;
+  $band_limit = 3;
+
+  $query = db_select('node', 'n');
+  $query->fields('n', array('nid'));
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
+  $query->condition('n.type', 'concert');
+  $query->condition('n.status', '1');
+  $query->condition('d.field_event_date_value', time(), '>');
+  $query->orderBy('d.field_event_date_value', 'ASC');
+  $query->range(0, $num_concerts);
+
+  $rs = $query->execute();
+  $concerts = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    print_r($node->title);
+    echo "\n\n";
+
+    $artist_string = '';
+    if ($node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
+      $artist_string = "<strong>" . l($node->title, 'node/' . $node->nid, array('absolute' => TRUE)) . "</strong>: ";
+    }
+    $artists = array();
+    for ($i = 0; $i < $band_limit; $i++) {
+      if (isset($node->field_artists[LANGUAGE_NONE][$i])) {
+        $artists[] = l(_get_artist_name($node->field_artists[LANGUAGE_NONE][$i]['target_id']), 'node/' . $node->field_artists[LANGUAGE_NONE][$i]['target_id'], array('absolute' => TRUE));
+      }
+    }
+    $artist_string.= implode(", ", $artists);
+    if (count($node->field_artists[LANGUAGE_NONE]) > $band_limit) {
+      $artist_string .= ", m.fl.";
+    }
+
+    $node->artist_string = $artist_string;
+    $concerts[] = $node;
+  }
+
+
+  echo "</pre>";
 }
 
 function _country_content($exclude) {
