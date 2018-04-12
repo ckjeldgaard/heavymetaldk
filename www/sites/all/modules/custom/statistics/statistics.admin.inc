@@ -45,7 +45,7 @@ function _statistics_admin_form($form, &$form_state) {
   $year = (isset($_GET['filter_year']) && in_array($_GET['filter_year'], _available_years())) ? $_GET['filter_year'] : date('Y');
   $show_all = (isset($_GET['filter_show_all'])) ? TRUE : FALSE;
   $element = 1; // Integer to distinguish between multiple pagers on same page.
-  $num_per_page = ($show_all) ? 1000 : 25;
+  $num_per_page = ($show_all) ? 1000 : 50;
 
   $form['#method'] = 'get';
 
