@@ -5,3 +5,6 @@ version = 7.x-1.0
 package = Heavymetal.dk
 
 files[] = statistics.module
+files[] = statistics.install
+dependencies[] = firebase
+dependencies[] = url_alias

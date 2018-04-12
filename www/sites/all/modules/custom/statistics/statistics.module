@@ -1,5 +1,7 @@
 <?php
 
+require_once('statistics.analytics.inc');
+
 /**
  * Implements hook_block_info().
  */
@@ -9,7 +11,7 @@ function statistics_block_info() {
   );
   return $blocks;
 }
- 
+
 /**
  * Implements hook_block_view().
  */
@@ -54,7 +56,7 @@ function _artist_countries() {
   $countries = array();
   $exotic_countries = array();
   $limit = 15;
-  
+
   $sql = "SELECT l.name AS country, COUNT(*) AS quantity, r.entity_id AS release_id, n.title ";
   $sql.= "FROM node n ";
   $sql.= "INNER JOIN field_data_field_release r ON r.entity_id = n.nid ";
@@ -64,7 +66,7 @@ function _artist_countries() {
   $sql.= "WHERE n.type = :type ";
   $sql.= "GROUP BY country ";
   $sql.= "ORDER BY quantity DESC ";
-  
+
   $rs = db_query($sql, array(':type' => 'review'));
   $c = 0;
   foreach ($rs as $row) {
@@ -79,7 +81,7 @@ function _artist_countries() {
         'country' => 'Andre lande',
         'quantity' => $count_others,
       );
-      
+
       if ($row->quantity == 1) {
         $exotic_countries[] = array(
           'nid' => $row->release_id,
@@ -90,7 +92,7 @@ function _artist_countries() {
     }
     $c++;
   }
-  
+
   $return = array(
     'countries' => $countries,
     'exotic_countries' => $exotic_countries
@@ -99,11 +101,11 @@ function _artist_countries() {
 }
 
 function _rating_distribution($start_time = NULL, $end_time = NULL) {
-  
+
   if ($end_time == NULL) {
     $end_time = time();
   }
-  
+
   $ratings = array(
     1 => 0,
     2 => 0,
@@ -117,7 +119,7 @@ function _rating_distribution($start_time = NULL, $end_time = NULL) {
     10 => 0
   );
   $params = array(':type' => 'review');
-  
+
   $sql = "SELECT r.field_rating_value, COUNT(*) AS quantity ";
   $sql.= "FROM field_data_field_rating r ";
   if (is_numeric($start_time)) {
@@ -129,11 +131,11 @@ function _rating_distribution($start_time = NULL, $end_time = NULL) {
     $sql.= "WHERE r.bundle = :type ";
   }
   $sql.= "GROUP BY r.field_rating_value ";
-  
+
   $rs = db_query($sql, $params);
   foreach ($rs as $row) {
     $ratings[$row->field_rating_value] = $row->quantity;
   }
-  
+
   return $ratings;
 }

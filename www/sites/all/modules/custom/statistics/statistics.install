@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function statistics_schema() {
+  $schema['analytics_pageviews'] = array(
+    'description' => 'Table containing Google Analytics data for reviews',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'Review Node ID',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'pageviews' => array(
+        'description' => 'Number of page views',
+        'type' => 'int',
+        'not null' => TRUE,
+      )
+    ),
+  );
+  return $schema;
+}
