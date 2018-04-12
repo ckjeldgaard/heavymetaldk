@@ -7,14 +7,18 @@ require_once __DIR__ . '/../firebase/google-api-php-client/vendor/autoload.php';
  */
 function statistics_cron() {
   $last_sync = variable_get('analytics_last_sync_run', 0);
-  if ((time() - $last_sync) > 86400) {
-    $analytics = _initialize_analytics();
-    $profile = _get_first_profile_id($analytics);
-    $results = _get_results($analytics, $profile);
-    _save_results($results->getRows());
+  if ((time() - $last_sync) > 100) {
+    try {
+      $analytics = _initialize_analytics();
+      $profile = _get_first_profile_id($analytics);
+      $results = _get_results($analytics, $profile);
+      _save_results($results->getRows());
 
-    watchdog('statistics', "Successfully updated :total reviews with Google Analytics data", array(':total' => $results->totalResults),WATCHDOG_INFO, NULL);
-    variable_set('analytics_last_sync_run', time());
+      watchdog('statistics', "Successfully updated :total reviews with Google Analytics data", array(':total' => $results->totalResults),WATCHDOG_INFO, NULL);
+      variable_set('analytics_last_sync_run', time());
+    } catch (Exception $e) {
+      watchdog('statistics', "Couldn't initialize Google Analytics. Check service account credentials JSON file. Error message: @error", array('@error' => $e->getMessage()),WATCHDOG_ERROR, NULL);
+    }
   }
 }
 
@@ -46,7 +50,7 @@ function _save_results($rows) {
           ))
           ->execute();
       } catch (Exception $e) {
-        watchdog('statistics', "Error merging analytics_pageviews table: " . $e->getMessage());
+        watchdog('statistics', "Error merging analytics_pageviews table: " . $e->getMessage(), NULL, WATCHDOG_ERROR);
       }
     }
   }
@@ -63,7 +67,8 @@ function _get_nid_by_path($path) {
 }
 
 function _initialize_analytics() {
-  $KEY_FILE_LOCATION = __DIR__ . '/service-account-credentials.json';
+  $KEY_FILE_NAME = 'service-account-credentials.json';
+  $KEY_FILE_LOCATION = DRUPAL_ROOT . '/' . variable_get('file_private_path') . '/' . $KEY_FILE_NAME;
 
   $client = new Google_Client();
   $client->setApplicationName("Heavymetal.dk");

@@ -9,4 +9,3 @@ node_modules/
 .idea/
 db/
 *.iml
-www/sites/all/modules/custom/statistics/service-account-credentials.json
