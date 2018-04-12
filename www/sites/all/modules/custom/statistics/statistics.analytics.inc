@@ -7,7 +7,7 @@ require_once __DIR__ . '/../firebase/google-api-php-client/vendor/autoload.php';
  */
 function statistics_cron() {
   $last_sync = variable_get('analytics_last_sync_run', 0);
-  if ((time() - $last_sync) > 100) {
+  if ((time() - $last_sync) > 86400) {
     try {
       $analytics = _initialize_analytics();
       $profile = _get_first_profile_id($analytics);
