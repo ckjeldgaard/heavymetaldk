@@ -140,8 +140,6 @@ function _additional_content($exclude) {
 }
 
 function _concerts($country = 'da') {
-  echo "<pre>";
-
   $num_concerts = 5;
   $band_limit = 3;
 
@@ -158,8 +156,6 @@ function _concerts($country = 'da') {
   $concerts = array();
   foreach ($rs as $row) {
     $node = node_load($row->nid);
-    print_r($node->title);
-    echo "\n\n";
 
     $artist_string = '';
     if ($node->field_is_festival[LANGUAGE_NONE][0]['value'] == 1) {
@@ -178,10 +174,7 @@ function _concerts($country = 'da') {
 
     $node->artist_string = $artist_string;
     $concerts[] = $node;
-  }
-
-
-  echo "</pre>";
+  };
 }
 
 function _country_content($exclude) {
