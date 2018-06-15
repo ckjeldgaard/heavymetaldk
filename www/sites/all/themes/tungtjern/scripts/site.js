@@ -216,15 +216,48 @@ $('.query').on('typeahead:selected', function(event, selection) {
   );
 
   $("footer .close").click(function () {
-    Cookies.set('adsclosed', '1');
+    if (Cookies.get('no_cookies') !== '1') {
+      Cookies.set('adsclosed', '1');
+    }
     $("footer .adslist").animate({width:'toggle'},350);
   });
 
-  if (Cookies.get('adsclosed') == '1') {
+  if (Cookies.get('adsclosed') === '1') {
     $("footer .adslist").remove();
   } else {
     $("footer .adslist").show();
   }
+
+      $('#consent_ga_tracking').change(function() {
+        if($(this).is(':checked')){
+          Cookies.remove('no_analytics_tracking');
+        } else {
+          Cookies.set('no_analytics_tracking', '1');
+        }
+      });
+
+      $('#consent_cookies').change(function() {
+        if($(this).is(':checked')){
+          Cookies.remove('no_cookies');
+        } else {
+          Cookies.set('no_cookies', '1');
+        }
+      });
+
+      if (Cookies.get('no_analytics_tracking') !== '1') {
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        ga('create', 'UA-41737655-1', 'auto');
+        ga('send', 'pageview');
+      } else {
+        $('#consent_ga_tracking').prop('checked', false);
+      }
+
+      if (Cookies.get('no_cookies') === '1') {
+        $('#consent_cookies').prop('checked', false);
+      }
 
       var tabs =  $(".reportage-tabs li a");
 

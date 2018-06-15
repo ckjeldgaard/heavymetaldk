@@ -1,0 +1,8 @@
+name = Consent
+description = Provides a block where the user can administer GDPR consent
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+configure = admin/config/system/consent
+
+files[] = consent.module

@@ -1,0 +1,115 @@
+<?php
+
+/**
+ * Implements hook_menu().
+ */
+function consent_menu() {
+  $items['admin/config/system/consent'] = array(
+    'title' => 'Consent settings',
+    'description' => 'Change consent texts',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_consent_settings_form'),
+    'access arguments' => array('administer consent'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function consent_permission() {
+  return array(
+    'administer consent' => array(
+      'title' => t('Administer consent'),
+    ),
+  );
+}
+
+/**
+ * Defines the address block settings form.
+ */
+function _consent_settings_form() {
+  $form = array();
+
+  $form['analytics'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Google Analytics tracking consent'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['analytics']['consent_analytics_headline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Headline'),
+    '#default_value' => variable_get('consent_analytics_headline')
+  );
+  $form['analytics']['consent_analytics_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => variable_get('consent_analytics_text')
+  );
+
+  $form['cookies'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Cookies consent'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['cookies']['consent_cookies_headline'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Headline'),
+    '#default_value' => variable_get('consent_cookies_headline')
+  );
+  $form['cookies']['consent_cookies_text'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#default_value' => variable_get('consent_cookies_text')
+  );
+
+  return system_settings_form($form);
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function consent_block_info() {
+  $blocks['block-consent'] = array(
+    'info' => t('Consent'),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function consent_block_view($delta) {
+
+  $block = array();
+  switch ($delta) {
+    case 'block-consent':
+      $block['subject'] = t('Consent');
+      $block['content'] = theme('block-consent', array('content' => _consent_contents()));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_theme().
+ */
+function consent_theme() {
+  return array(
+    'block-consent' => array(
+      'template' => 'block--consent',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'consent'),
+    ),
+  );
+}
+
+/**
+ * Fetches the address block contents from the database.
+ */
+function _consent_contents() {
+  return "";
+}
