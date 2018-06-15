@@ -23,54 +23,8 @@ function tungtjern_preprocess_user_profile(&$variables) {
   $variables['user_comments'] = _get_user_comments($uid);
   $variables['user_role_name'] = _user_role($uid);
 
-  // Compute age:
-  if (isset($variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value']) && $variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value'] > 0) {
-    $birth = $variables['user_profile']['field_address']['#object']->field_birthday[LANGUAGE_NONE][0]['value'];
-    $t = time();
-    $age = ($birth < 0) ? ( $t + ($birth * -1) ) : $t - $birth;
-    $age = floor($age/31536000);
-    $variables['age'] = $age;
-  }
-
-  if (isset($variables['user_profile']['field_address']['#object']->field_gender[LANGUAGE_NONE][0]['value'])) {
-    if ($variables['user_profile']['field_address']['#object']->field_gender[LANGUAGE_NONE][0]['value'] == 'M') {
-      $variables['gender'] = t('Man');
-    }
-    else if ($variables['user_profile']['field_address']['#object']->field_gender[LANGUAGE_NONE][0]['value'] == 'F') {
-      $variables['gender'] = t('Woman');
-    }
-  }
-
-  // Only administrators can view addresses:
-  if (in_array('administrator', $user->roles)) {
-    $address = '';
-
-    if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['thoroughfare']) > 0) {
-      $address .= $variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['thoroughfare'] . "<br />\n";
-    }
-    if (
-      strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['postal_code']) > 0 ||
-      strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['locality']) > 0
-    ) {
-      if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['postal_code']) > 0) {
-        $address .= $variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['postal_code'] . " ";
-      }
-      if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['locality']) > 0) {
-        $address .= $variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['locality'];
-      }
-      $address .= "<br />\n";
-    }
-    /*if (strlen($variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['country']) > 0) {
-      $country_names = _country_get_predefined_list();
-      $address .= $country_names[$variables['user_profile']['field_address']['#object']->field_address[LANGUAGE_NONE][0]['country']];
-    }*/
-    $variables['address'] = $address;
-  }
-
   // Protect personal info (like email addresses etc.)
   $variables['display'] = (in_array('administrator', $user->roles)) ? TRUE : FALSE;
-
-
 }
 
 /**

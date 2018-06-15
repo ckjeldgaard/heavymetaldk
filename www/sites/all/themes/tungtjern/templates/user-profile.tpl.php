@@ -13,18 +13,6 @@
         <td><?php print $elements['#account']->field_address[LANGUAGE_NONE][0]['name_line']; ?></td>
       </tr>
       <?php endif; ?>
-      <?php if (isset($variables['age'])) : ?>
-      <tr>
-        <td>Alder</td>
-        <td><?php print $variables['age']; ?> år</td>
-      </tr>
-      <?php endif; ?>
-      <?php if (isset($variables['gender'])) : ?>
-      <tr>
-        <td><?php print t('Gender'); ?></td>
-        <td><?php print $variables['gender']; ?></td>
-      </tr>
-      <?php endif; ?>
       <tr>
         <td>Medlem siden</td>
         <td><?php print formatted_date($elements['#account']->created); ?></td>
@@ -33,14 +21,6 @@
         <td>Sidste besøg</td>
         <td><?php print formatted_date($elements['#account']->login); ?></td>
       </tr>
-      <?php if (isset($variables['address']) && strlen($variables['address']) > 0) : ?>
-      <tr>
-        <td>Adresse</td>
-        <td>
-          <address><?php print $variables['address']; ?></address>
-        </td>
-      </tr>
-      <?php endif; ?>
       <tr>
         <td>E-mail</td>
         <td>
