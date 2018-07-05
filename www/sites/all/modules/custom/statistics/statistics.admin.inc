@@ -13,6 +13,14 @@ function statistics_menu() {
     'access arguments' => ['read statistics'],
     'type' => MENU_NORMAL_ITEM,
   ];
+  $items['admin/config/statistics/emails'] = array(
+    'title' => 'Statistics mails',
+    'description' => 'Configure statistics emails',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_statistics_mail_form'),
+    'access arguments' => array('read statistics'),
+    'type' => MENU_NORMAL_ITEM,
+  );
   return $items;
 }
 

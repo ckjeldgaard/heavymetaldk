@@ -1,6 +1,7 @@
 <?php
 
 require_once('statistics.admin.inc');
+require_once('statistics.mail.inc');
 require_once('statistics.analytics.inc');
 
 /**

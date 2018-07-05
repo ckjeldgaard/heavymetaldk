@@ -19,5 +19,22 @@ function statistics_schema() {
       )
     ),
   );
+  $schema['analytics_mail_log'] = array(
+    'description' => 'Table containing a log of analytics mails sent to reviewers.',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'Node ID of review',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'mail_sent' => array(
+        'description' => 'Type of mail sent. Either LOW or HIGH.',
+        'type' => 'int',
+        'size' => 'small',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('nid', 'mail_sent'),
+  );
   return $schema;
 }

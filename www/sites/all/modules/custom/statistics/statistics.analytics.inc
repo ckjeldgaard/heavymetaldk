@@ -20,6 +20,7 @@ function statistics_cron() {
       watchdog('statistics', "Couldn't initialize Google Analytics. Check service account credentials JSON file. Error message: @error", array('@error' => $e->getMessage()),WATCHDOG_ERROR, NULL);
     }
   }
+  _send_pageview_emails();
 }
 
 function _get_results($analytics, $profileId) {
