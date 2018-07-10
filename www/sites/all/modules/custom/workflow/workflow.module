@@ -244,6 +244,7 @@ function _block_unreviewed_releases() {
 
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Availability'), 'field' => 'field_availability_value'),
     array('data' => t('Priority'), 'field' => 'field_priority_value'),
     array('data' => t('Release date'), 'field' => 'field_release_date_value', 'sort' => 'desc'),
     t('Deadline'),
@@ -261,8 +262,10 @@ function _block_unreviewed_releases() {
   $query->fields('n', array('nid', 'title'));
   $query->fields('d', array('field_release_date_value'));
   $query->fields('p', array('field_priority_value'));
+  $query->fields('a', array('field_availability_value'));
   $query->join('field_data_field_release_date', 'd', 'd.entity_id = n.nid');
   $query->leftJoin('field_data_field_priority', 'p', 'p.entity_id = n.nid');
+  $query->leftJoin('field_data_field_availability', 'a', 'a.entity_id = n.nid');
   $query->leftJoin('field_data_field_release', 'r', 'r.field_release_target_id = n.nid');
   $query->condition('n.status', 1);
   $query->condition('n.type', 'release');
@@ -276,7 +279,8 @@ function _block_unreviewed_releases() {
     $d = $row->field_release_date_value;
     $rows[] = array(
       $row->title,
-      _priority($row->field_priority_value),
+      _availability($row->field_availability_value),
+      _priority($row->field_availability_value),
       _print_cell(format_date($row->field_release_date_value, 'displaydate_short'), $d),
       _deadline($row->field_release_date_value, $row->field_priority_value),
       _get_artist_genre_by_release($row->nid),
@@ -310,6 +314,22 @@ function _print_cell($cell, $date) {
   }
 }
 
+function _availability($a) {
+  switch ($a) {
+    case 0:
+      return t('On server');
+      break;
+    case 1:
+      return t('Not on server');
+      break;
+    case 2:
+      return t('Spotify');
+      break;
+    default:
+      return t('On server');
+  }
+}
+
 function _priority($priority) {
   $none = '(' . t('None') . ')';
   $low = '<span style="color:green;font-weight:bold;">' . t('Low') . '</span>';
@@ -339,6 +359,7 @@ function _block_reviews_in_progress() {
 
   $header = array(
     array('data' => t('Name'), 'field' => 'title'),
+    array('data' => t('Availability'), 'field' => 'field_availability_value'),
     array('data' => t('Priority'), 'field' => 'field_priority_value'),
     array('data' => t('Release date'), 'field' => 'field_release_date_value'),
     t('Deadline'),
@@ -355,10 +376,12 @@ function _block_reviews_in_progress() {
   $query->fields('n', array('nid', 'title', 'uid'));
   $query->fields('d', array('field_release_date_value'));
   $query->fields('p', array('field_priority_value'));
+  $query->fields('a', array('field_availability_value'));
   $query->fields('u', array('name'));
   $query->join('field_data_field_release', 'r', 'r.entity_id = n.nid');
   $query->join('field_data_field_release_date', 'd', 'd.entity_id = r.field_release_target_id');
   $query->leftJoin('field_data_field_priority', 'p', 'p.entity_id = r.field_release_target_id');
+  $query->leftJoin('field_data_field_availability', 'a', 'a.entity_id = r.field_release_target_id');
   $query->join('users', 'u', 'n.uid = u.uid');
   $query->condition('n.status', 0);
   $query->condition('n.type', 'review');
@@ -370,6 +393,7 @@ function _block_reviews_in_progress() {
   foreach ($results as $row) {
     $rows[] = array(
       l($row->title, 'node/' . $row->nid),
+      _availability($row->field_availability_value),
       _priority($row->field_priority_value),
       _print_cell(format_date($row->field_release_date_value, 'displaydate_short'), $row->field_release_date_value),
       _deadline($row->field_release_date_value, $row->field_priority_value),
