@@ -17,6 +17,8 @@ docker-compose stop
 docker-compose up -d --build
 ```
 
+When the web server is running, [phpMyAdmin](https://www.phpmyadmin.net/) will be available from `http://localhost:8080`.
+
 ## Deployment
 
 A [Gulp](https://gulpjs.com/) task called `deploy` will upload all www-files changed since last Git commit through FTP. To run the task, run the following command:
