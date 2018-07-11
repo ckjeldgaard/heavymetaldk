@@ -2,7 +2,7 @@
 
 define("THRESHOLD_LOW", 500);
 define("THRESHOLD_HIGH", 1000);
-define("EPOCH_DATE", mktime(0, 0, 0, 6, 10, 2018));
+define("EPOCH_DATE", mktime(0, 0, 0, 1, 10, 2018));
 
 define("MAIL_TYPE_LOW", 0);
 define("MAIL_TYPE_HIGH", 1);
@@ -15,10 +15,10 @@ function _send_pageview_emails() {
   $rs = db_query($sql, array('threshold' => THRESHOLD_LOW, 'published_at' => EPOCH_DATE));
 
   foreach ($rs as $row) {
-    if (!_has_mail_been_sent($row->nid, MAIL_TYPE_LOW)) {
+    if (!_has_mail_been_sent($row->nid, MAIL_TYPE_LOW) && $row->pageviews >= THRESHOLD_LOW) {
       _send_mail($row->nid, MAIL_TYPE_LOW, $row->pageviews);
     }
-    if (!_has_mail_been_sent($row->nid, MAIL_TYPE_HIGH)) {
+    if (!_has_mail_been_sent($row->nid, MAIL_TYPE_HIGH) && $row->pageviews >= MAIL_TYPE_HIGH) {
       _send_mail($row->nid, MAIL_TYPE_HIGH, $row->pageviews);
     }
   }
@@ -106,6 +106,7 @@ function _log_mail_sent($nid, $mail_type) {
       ->fields(array(
         'nid' => $nid,
         'mail_sent' => $mail_type,
+        'time_created' => time(),
       ))
       ->execute();
   } catch (Exception $e) {

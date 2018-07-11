@@ -33,6 +33,11 @@ function statistics_schema() {
         'size' => 'small',
         'not null' => TRUE,
       ),
+      'time_created' => array(
+        'description' => 'Timestamp when the email was sent.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
     ),
     'primary key' => array('nid', 'mail_sent'),
   );
