@@ -280,7 +280,7 @@ function _block_unreviewed_releases() {
     $rows[] = array(
       $row->title,
       _availability($row->field_availability_value),
-      _priority($row->field_availability_value),
+      _priority($row->field_priority_value),
       _print_cell(format_date($row->field_release_date_value, 'displaydate_short'), $d),
       _deadline($row->field_release_date_value, $row->field_priority_value),
       _get_artist_genre_by_release($row->nid),
