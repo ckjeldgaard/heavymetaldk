@@ -2,7 +2,7 @@
 
 define("THRESHOLD_LOW", 500);
 define("THRESHOLD_HIGH", 1000);
-define("EPOCH_DATE", mktime(0, 0, 0, 1, 10, 2018));
+define("EPOCH_DATE", mktime(0, 0, 0, 6, 10, 2018));
 
 define("MAIL_TYPE_LOW", 0);
 define("MAIL_TYPE_HIGH", 1);
@@ -53,9 +53,9 @@ function _send_mail($nid, $mail_type, $pageviews) {
       t($message),
       'plain_text'
     ),
-    'headers' => array(
+    /* 'headers' => array(
       'Bcc' => _editor_emails($to)
-    )
+    ) */
   );
 
   $watchdog_vars = array(
@@ -64,7 +64,14 @@ function _send_mail($nid, $mail_type, $pageviews) {
     "%review" => $rs['title'],
   );
   watchdog('statistics', "Sending statistics mail of type %type to %to about the review %review.", $watchdog_vars, WATCHDOG_INFO);
+
+  // Send to reviewer:
   drupal_mail('statistics', 'pageviews_mail', $to, language_default(), $params, $site_email);
+
+  // Send copy to editors:
+  foreach (_editor_emails($to) as $mail) {
+    drupal_mail('statistics', 'pageviews_mail', $mail, language_default(), $params, $site_email);
+  }
   _log_mail_sent($nid, $mail_type);
 }
 
@@ -84,7 +91,7 @@ function _editor_emails($exclude) {
     }
   }
 
-  return implode(", ", $mails);
+  return $mails;
 }
 
 /**
