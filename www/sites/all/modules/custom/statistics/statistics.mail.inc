@@ -58,6 +58,12 @@ function _send_mail($nid, $mail_type, $pageviews) {
     )
   );
 
+  $watchdog_vars = array(
+    "%type" => $mail_type,
+    "%to" => $to,
+    "%review" => $rs['title'],
+  );
+  watchdog('statistics', "Sending statistics mail of type %type to %to about the review %review.", $watchdog_vars, WATCHDOG_INFO);
   drupal_mail('statistics', 'pageviews_mail', $to, language_default(), $params, $site_email);
   _log_mail_sent($nid, $mail_type);
 }
