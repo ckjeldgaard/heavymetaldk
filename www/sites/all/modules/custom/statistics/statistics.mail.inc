@@ -18,7 +18,7 @@ function _send_pageview_emails() {
     if (!_has_mail_been_sent($row->nid, MAIL_TYPE_LOW) && $row->pageviews >= THRESHOLD_LOW) {
       _send_mail($row->nid, MAIL_TYPE_LOW, $row->pageviews);
     }
-    if (!_has_mail_been_sent($row->nid, MAIL_TYPE_HIGH) && $row->pageviews >= MAIL_TYPE_HIGH) {
+    if (!_has_mail_been_sent($row->nid, MAIL_TYPE_HIGH) && $row->pageviews >= THRESHOLD_HIGH) {
       _send_mail($row->nid, MAIL_TYPE_HIGH, $row->pageviews);
     }
   }
