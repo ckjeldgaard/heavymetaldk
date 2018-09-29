@@ -15,6 +15,12 @@ function api_menu() {
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
+  $items["api/" . API_VERSION . "/reviews/%"] = array(
+    'page callback' => '_api_review',
+    'page arguments' => array(3),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
 
   // Administration
   $items['admin/config/api'] = array(
@@ -121,13 +127,53 @@ LIMIT 20";
   $items = array();
   foreach ($rs as $row) {
     $node = node_load($row->nid);
-    // print_r($node);
-
     $items[] = _output_review($node, $row->published_at);
   }
 
   drupal_json_output(array(
     "data" => $items
+  ));
+  drupal_exit();
+}
+
+function _api_review($nid) {
+  drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
+
+  if (!_valid_api_key()) {
+    drupal_exit();
+  }
+
+  if (!is_numeric($nid)) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 4,
+          "message" => "The provided key parameter must be numeric."
+        )
+      )
+    ));
+    drupal_exit();
+  }
+
+  $node = node_load($nid);
+  if (!is_object($node) || $node->type != 'review') {
+    drupal_add_http_header('Status', '400 Bad Request');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 5,
+          "message" => "Invalid resource specified."
+        )
+      )
+    ));
+    drupal_exit();
+  }
+
+  drupal_json_output(array(
+    "data" => array(
+      _output_review($node, 1)
+    )
   ));
   drupal_exit();
 }
@@ -140,6 +186,7 @@ function _output_review($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE)),
     "release" => _output_release($release_node),
     "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
     "tagline" => $node->field_tagline[LANGUAGE_NONE][0]['safe_value'],
