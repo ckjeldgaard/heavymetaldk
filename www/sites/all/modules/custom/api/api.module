@@ -206,7 +206,7 @@ function _api_review($nid) {
 
   $node = node_load($nid);
   if (!is_object($node) || $node->type != 'review') {
-    drupal_add_http_header('Status', '400 Bad Request');
+    drupal_add_http_header('Status', '404 Not Found');
     drupal_json_output(array(
       "errors" => array(
         array(
