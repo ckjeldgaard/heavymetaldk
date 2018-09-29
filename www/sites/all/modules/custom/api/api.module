@@ -170,9 +170,11 @@ function _api_review($nid) {
     drupal_exit();
   }
 
+  $p = db_query("SELECT published_at FROM publication_date WHERE nid = :nid", array(':nid' => $node->nid))->fetchAssoc();
+
   drupal_json_output(array(
     "data" => array(
-      _output_review($node, 1)
+      _output_review($node, $p['published_at'])
     )
   ));
   drupal_exit();
@@ -182,9 +184,13 @@ function _output_review($node, $published_at) {
 
   $release_node = node_load($node->field_release[LANGUAGE_NONE][0]['target_id']);
 
+  $title_parts = explode(" - ", $node->title);
+
   $review = array(
     "nid" => (int) $node->nid,
     "title" => $node->title,
+    "artistName" => $title_parts[0],
+    "releaseTitle" => $title_parts[1],
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
     "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE)),
     "release" => _output_release($release_node),
