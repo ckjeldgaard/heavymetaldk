@@ -1,11 +1,22 @@
 <?php
 
+define("API_VERSION", "v1");
+
 require_once('api.admin.inc');
 
 /**
  * Implements hook_menu().
  */
 function api_menu() {
+
+  // API
+  $items["api/" . API_VERSION . "/reviews"] = array(
+    'page callback' => '_api_reviews',
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  // Administration
   $items['admin/config/api'] = array(
     'title' => t('REST API'),
     'page callback' => '_api_keys_list',
@@ -42,4 +53,172 @@ function api_menu() {
     'file' => 'api.admin.inc',
   );
   return $items;
+}
+
+function _valid_api_key() {
+
+  if (!isset($_GET['api_key'])) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 1,
+          "message" => "Invalid parameters. Your request is missing a required parameter."
+        )
+      )
+    ));
+    return FALSE;
+  }
+
+  $key = db_query("SELECT * FROM api_keys WHERE api_key = :api_key LIMIT 1", array(':api_key' => check_plain($_GET['api_key'])))->fetchAssoc();
+
+  if (!is_array($key)) {
+    drupal_add_http_header('Status', '403 Forbidden');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 2,
+          "message" => "Invalid API key. You must be granted a valid key."
+        )
+      )
+    ));
+    return FALSE;
+  }
+
+  if (!$key['active']) {
+    drupal_add_http_header('Status', '403 Forbidden');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 3,
+          "message" => "Suspended API key. Access for your account has been suspended."
+        )
+      )
+    ));
+    return FALSE;
+  }
+
+  return TRUE;
+}
+
+function _api_reviews() {
+  drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
+
+  if (!_valid_api_key()) {
+    drupal_exit();
+  }
+
+  drupal_add_http_header('Content-Type', 'text/plain');
+
+  $sql = "SELECT n.nid, p.published_at
+FROM node n 
+INNER JOIN publication_date p ON p.nid = n.nid
+WHERE n.type = :type AND n.status = :status
+ORDER BY p.published_at DESC 
+LIMIT 20";
+  $rs = db_query($sql, array(':type' => 'review', ':status' => 1));
+
+  $items = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    // print_r($node);
+
+    $items[] = _output_review($node, $row->published_at);
+  }
+
+  drupal_json_output(array(
+    "data" => $items
+  ));
+  drupal_exit();
+}
+
+function _output_review($node, $published_at) {
+
+  $release_node = node_load($node->field_release[LANGUAGE_NONE][0]['target_id']);
+
+  $review = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "release" => _output_release($release_node),
+    "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
+    "tagline" => $node->field_tagline[LANGUAGE_NONE][0]['safe_value'],
+    "summary" => $node->body[LANGUAGE_NONE][0]['safe_summary'],
+    "bodyHtml" => $node->body[LANGUAGE_NONE][0]['safe_value'],
+    "youtubeEmbedCode" => $node->field_embed_code[LANGUAGE_NONE][0]['safe_value'],
+    "dates" => array(
+      "created" => (int) $node->created,
+      "changed" => (int) $node->changed,
+      "publishedAt" => (int) $published_at
+    ),
+    "author" => array(
+      "uid" => (int) $node->uid,
+      "name" => $node->name,
+      "url" => url('user/' . $node->uid, array('absolute' => TRUE)),
+    ),
+    "meta" => array(
+      "classic" => ($node->field_classic[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE,
+      "detektoren" => ($node->field_detektoren[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE,
+    )
+  );
+
+  $genres = array();
+  foreach ($node->field_genre[LANGUAGE_NONE] as $g) {
+    $term = taxonomy_term_load($g['target_id']);
+    $genres[] = _output_genre($term);
+  }
+  $review['genres'] = $genres;
+
+  return $review;
+}
+
+function _output_release($node) {
+  $release = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "releaseTitle" => $node->field_release_title[LANGUAGE_NONE][0]['safe_value'],
+    "releaseType" => $node->field_release_type[LANGUAGE_NONE][0]['value'],
+    "releaseDate" => (int) $node->field_release_date[LANGUAGE_NONE][0]['value'],
+    "artist" => _output_artist(node_load($node->field_artist[LANGUAGE_NONE][0]['target_id'])),
+    "label" => _output_label(taxonomy_term_load($node->field_label[LANGUAGE_NONE][0]['tid'])),
+    "images" => array(
+      "thumb" => image_cache('review_thumbnail', $node->field_image[LANGUAGE_NONE][0]),
+      "large" => image_cache('review', $node->field_image[LANGUAGE_NONE][0])
+    ),
+    "runningTime" => $node->field_running_time[LANGUAGE_NONE][0]['value'],
+    "tracks" => (int) $node->field_tracks[LANGUAGE_NONE][0]['value'],
+    "tracklist" => $node->field_tracklist[LANGUAGE_NONE][0]['safe_value'],
+  );
+  return $release;
+}
+
+function _output_artist($node) {
+  $artist = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "description" => $node->field_description[LANGUAGE_NONE][0]['value'],
+    "countryIso" => $node->field_country[LANGUAGE_NONE][0]['iso2'],
+  );
+  return $artist;
+}
+
+function _output_genre($term) {
+  $genre = array(
+    "tid" => (int) $term->tid,
+    "title" => $term->name,
+    "url" => url('taxonomy/term/' . $term->tid, array('absolute' => TRUE)),
+  );
+  return $genre;
+}
+
+function _output_label($term) {
+  $label = array(
+    "tid" => (int) $term->tid,
+    "title" => $term->name,
+    "url" => url('taxonomy/term/' . $term->tid, array('absolute' => TRUE)),
+    "countryIso" => $term->field_country[LANGUAGE_NONE][0]['iso2'],
+    "websiteUrl" => $term->field_website_link[LANGUAGE_NONE][0]['url']
+  );
+  return $label;
 }
