@@ -1,6 +1,7 @@
 <?php
 
 define("API_VERSION", "v1");
+define("MAXIMUM_PAGE_LIMIT", 25);
 
 require_once('api.admin.inc');
 
@@ -107,6 +108,27 @@ function _valid_api_key() {
   return TRUE;
 }
 
+function _limit() {
+  $limit = MAXIMUM_PAGE_LIMIT;
+  if (isset($_GET['limit']) && is_numeric($_GET['limit'])) {
+    if ($_GET['limit'] > MAXIMUM_PAGE_LIMIT) {
+      drupal_add_http_header('Status', '403 Forbidden');
+      drupal_json_output(array(
+        "errors" => array(
+          array(
+            "code" => 6,
+            "message" => "A maximum of " . MAXIMUM_PAGE_LIMIT . " is allowed as page limit."
+          )
+        )
+      ));
+      drupal_exit();
+    }
+    $limit = $_GET['limit'];
+  }
+
+  return $limit;
+}
+
 function _api_reviews() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
@@ -116,12 +138,16 @@ function _api_reviews() {
 
   drupal_add_http_header('Content-Type', 'text/plain');
 
+  $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
+  $limit = _limit();
+
   $sql = "SELECT n.nid, p.published_at
 FROM node n 
 INNER JOIN publication_date p ON p.nid = n.nid
-WHERE n.type = :type AND n.status = :status
+WHERE n.type = :type AND n.status = :status 
 ORDER BY p.published_at DESC 
-LIMIT 20";
+LIMIT {$offset}, {$limit}";
+
   $rs = db_query($sql, array(':type' => 'review', ':status' => 1));
 
   $items = array();
@@ -130,10 +156,32 @@ LIMIT 20";
     $items[] = _output_review($node, $row->published_at);
   }
 
+
+  $max = _maximum_reviews();
+  $last_offset = $max - ($max % $limit);
+
+  $links = array(
+    "next" => "<" . url('api/v1/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/v1/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/v1/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+  );
+
+  $prev_offset = $offset-$limit;
+  if ($prev_offset >= 0) {
+    $links['prev'] =  "<" . url('api/v1/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+  }
+
+  drupal_add_http_header('Link', implode(", ", $links));
   drupal_json_output(array(
     "data" => $items
   ));
   drupal_exit();
+}
+
+function _maximum_reviews() {
+  $sql = "SELECT COUNT(n.nid) AS count FROM node n WHERE type = :type AND status = :status";
+  $c = db_query($sql, array(':type' => 'review', ':status' => 1))->fetchAssoc();
+  return $c['count'];
 }
 
 function _api_review($nid) {
@@ -192,7 +240,7 @@ function _output_review($node, $published_at) {
     "artistName" => $title_parts[0],
     "releaseTitle" => $title_parts[1],
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
     "release" => _output_release($release_node),
     "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
     "tagline" => $node->field_tagline[LANGUAGE_NONE][0]['safe_value'],
