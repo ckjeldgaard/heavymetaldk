@@ -1,0 +1,45 @@
+<?php
+
+require_once('api.admin.inc');
+
+/**
+ * Implements hook_menu().
+ */
+function api_menu() {
+  $items['admin/config/api'] = array(
+    'title' => t('REST API'),
+    'page callback' => '_api_keys_list',
+    'access callback' => TRUE,
+    'access arguments' => array('administer api'),
+    'type' => MENU_NORMAL_ITEM,
+    'file' => 'api.admin.inc',
+  );
+  $items['admin/config/api/add_api_key'] = array(
+    'title' => 'Add API key',
+    'description' => 'Add a new API key.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_add_api_key_form'),
+    'access arguments' => array('add api key'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api.admin.inc',
+  );
+  $items['admin/config/api/edit_api_key/%'] = array(
+    'title' => 'Edit API key',
+    'description' => 'Edit an existing API key.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_edit_api_key_form', 4),
+    'access arguments' => array('edit api key'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api.admin.inc',
+  );
+  $items['admin/config/api/delete_api_key/%'] = array(
+    'title' => 'Delete API key',
+    'description' => 'Delete an existing API key.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_delete_api_key_form', 4),
+    'access arguments' => array('delete api key'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api.admin.inc',
+  );
+  return $items;
+}

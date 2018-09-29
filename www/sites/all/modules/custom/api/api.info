@@ -1,0 +1,8 @@
+name = API
+description = Heavymetal.dk REST API
+core = 7.x
+version = 7.x-1.0
+package = Heavymetal.dk
+configure = admin/config/api
+
+files[] = api.module
