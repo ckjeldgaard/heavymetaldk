@@ -1,7 +1,8 @@
 <?php
 
 define("API_VERSION", "v1");
-define("MAXIMUM_PAGE_LIMIT", 25);
+define("DEFAULT_PAGE_LIMIT", 25);
+define("MAXIMUM_PAGE_LIMIT", 50);
 
 require_once('api.admin.inc');
 require_once('api.render.inc');
@@ -110,7 +111,7 @@ function _valid_api_key() {
 }
 
 function _limit() {
-  $limit = MAXIMUM_PAGE_LIMIT;
+  $limit = DEFAULT_PAGE_LIMIT;
   if (isset($_GET['limit']) && is_numeric($_GET['limit'])) {
     if ($_GET['limit'] > MAXIMUM_PAGE_LIMIT) {
       drupal_add_http_header('Status', '403 Forbidden');
