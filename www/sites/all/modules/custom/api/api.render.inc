@@ -7,7 +7,7 @@ function _output_concert_review($node, $published_at) {
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
     "concert" => _output_concert($node->field_concert[LANGUAGE_NONE][0]['target_id']),
-    "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
+    "rating" => (isset($node->field_rating[LANGUAGE_NONE][0]['value'])) ? (int) $node->field_rating[LANGUAGE_NONE][0]['value'] : NULL,
     "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
     "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
     "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
@@ -31,7 +31,7 @@ function _output_concert_review($node, $published_at) {
     $concert_review['reviews'][] = array(
       "headline" => (isset($item->field_headline[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_headline[LANGUAGE_NONE][0]['safe_value'] : $item->field_headline[LANGUAGE_NONE][0]['value'],
       "reviewTextHtml" => (isset($item->field_review_text[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_review_text[LANGUAGE_NONE][0]['safe_value'] : $item->field_review_text[LANGUAGE_NONE][0]['value'],
-      "rating" => (int) $item->field_rating[LANGUAGE_NONE][0]['value'],
+      "rating" => (isset($item->field_rating[LANGUAGE_NONE][0]['value'])) ? (int) $item->field_rating[LANGUAGE_NONE][0]['value'] : NULL,
       "image" => (isset($item->field_image[LANGUAGE_NONE][0])) ? image_cache('story', $item->field_image[LANGUAGE_NONE][0]) : null,
     );
   }
