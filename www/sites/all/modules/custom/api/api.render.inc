@@ -1,5 +1,42 @@
 <?php
 
+function _output_concert_review($node, $published_at) {
+
+  $concert_review = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "concert" => _output_concert($node->field_concert[LANGUAGE_NONE][0]['target_id']),
+    "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
+    "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
+    "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
+    "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
+    "reviews" => NULL,
+    "conclusionHtml" => (isset($node->field_conclusion[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_conclusion[LANGUAGE_NONE][0]['safe_value'] : $node->field_conclusion[LANGUAGE_NONE][0]['value'],
+    "primaryImage" => image_cache('story', $node->field_image[LANGUAGE_NONE][0]),
+    "dates" => array(
+      "created" => (int) $node->created,
+      "changed" => (int) $node->changed,
+      "publishedAt" => (int) $published_at
+    ),
+    "author" => array(
+      "uid" => (int) $node->uid,
+      "name" => $node->name,
+      "url" => url('user/' . $node->uid, array('absolute' => TRUE)),
+    ),
+  );
+
+  foreach ($node->field_concert_reviews[LANGUAGE_NONE] as $c) {
+    $item = field_collection_item_load($c['value']);
+    $concert_review['reviews'][] = array(
+      "headline" => (isset($item->field_headline[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_headline[LANGUAGE_NONE][0]['safe_value'] : $item->field_headline[LANGUAGE_NONE][0]['value'],
+      "reviewTextHtml" => (isset($item->field_review_text[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_review_text[LANGUAGE_NONE][0]['safe_value'] : $item->field_review_text[LANGUAGE_NONE][0]['value']
+    );
+  }
+
+  return $concert_review;
+}
+
 function _output_review($node, $published_at) {
 
   $title_parts = explode(" - ", $node->title);
@@ -40,6 +77,79 @@ function _output_review($node, $published_at) {
   $review['genres'] = $genres;
 
   return $review;
+}
+
+function _output_concert($concert_nid) {
+  $sql = <<<EOT
+  SELECT n.title,
+  v.field_venue_tid,
+  c.field_cancelled_value,
+  isf.field_is_festival_value,
+  fn.field_festival_name_value,
+  e.field_event_date_value,
+  e.field_event_date_value2,
+  st.field_start_time_value,
+  tp.field_ticket_price_value,
+  bl.field_buy_link_url,
+  fb.field_facebook_event_url
+  FROM node n
+  INNER JOIN field_data_field_venue v ON v.entity_id = n.nid AND v.bundle = 'concert'
+  INNER JOIN field_data_field_cancelled c ON c.entity_id = n.nid
+  INNER JOIN field_data_field_is_festival isf ON isf.entity_id = n.nid
+  LEFT JOIN field_data_field_festival_name fn ON fn.entity_id = n.nid
+  INNER JOIN field_data_field_event_date e ON e.entity_id = n.nid AND e.bundle = 'concert'
+  LEFT JOIN field_data_field_start_time st ON st.entity_id = n.nid AND st.bundle = 'concert'
+  LEFT JOIN field_data_field_ticket_price tp ON tp.entity_id = n.nid AND tp.bundle = 'concert'
+  LEFT JOIN field_data_field_buy_link bl ON bl.entity_id = n.nid AND bl.bundle = 'concert'
+  LEFT JOIN field_data_field_facebook_event fb ON fb.entity_id = n.nid AND fb.bundle = 'concert'
+  WHERE n.nid = :concert_nid AND n.status = :status
+EOT;
+
+  $params = array(
+    ":concert_nid" => $concert_nid, ":status" => 1
+  );
+  $rs = db_query($sql, $params)->fetchObject();
+
+  $concert_review = array(
+    "nid" => (int) $concert_nid,
+    "title" => $rs->title,
+    "venue" => _output_venue($rs->field_venue_tid),
+    "cancelled" => (bool) $rs->field_cancelled_value,
+    "eventDate" => array(
+      "startDate" => (int) $rs->field_event_date_value,
+      "endDate" => (int) $rs->field_event_date_value2,
+    ),
+    "festival" => array(
+      "isFestival" => (bool) $rs->field_is_festival_value,
+      "festivalName" => $rs->field_festival_name_value,
+    ),
+    "meta" => array(
+      "startTime" => $rs->field_start_time_value,
+      "ticketPrice" => (int) $rs->field_ticket_price_value,
+      "buyLink" => $rs->field_buy_link_url,
+      "facebookEventUrl" => $rs->field_facebook_event_url,
+    )
+  );
+
+  // Headliners:
+  $sql_headliners = "SELECT a.field_artists_target_id FROM field_data_field_artists a WHERE a.entity_id = :concert_nid AND a.bundle = :bundle";
+  $rs = db_query($sql_headliners, array(':concert_nid' => $concert_nid, ':bundle' => 'concert'));
+  $headliners = array();
+  foreach ($rs as $row) {
+    $headliners[] = _output_artist($row->field_artists_target_id);
+  }
+  $concert_review["headlinerArtists"] = $headliners;
+
+  // Support artists:
+  $sql_support = "SELECT a.field_support_artists_target_id FROM field_data_field_support_artists a WHERE a.entity_id = :concert_nid AND a.bundle = :bundle";
+  $rs = db_query($sql_support, array(':concert_nid' => $concert_nid, ':bundle' => 'concert'));
+  $support = array();
+  foreach ($rs as $row) {
+    $support[] = _output_artist($row->field_support_artists_target_id);
+  }
+  $concert_review["supportArtists"] = $support;
+
+  return $concert_review;
 }
 
 function _output_release($release_nid) {
@@ -134,6 +244,40 @@ EOT;
     "url" => url('taxonomy/term/' . $tid, array('absolute' => TRUE)),
   );
   return $genre;
+}
+
+function _output_venue($tid) {
+  $sql = <<<EOT
+  SELECT t.name,
+  a.field_address_thoroughfare,
+  a.field_address_postal_code,
+  a.field_address_locality,
+  a.field_address_country,
+  p.field_province_value,
+  w.field_website_link_url
+  FROM taxonomy_term_data t
+  INNER JOIN field_data_field_address a ON a.entity_id = t.tid AND a.bundle = 'venue'
+  INNER JOIN field_data_field_province p ON p.entity_id = t.tid AND p.bundle = 'venue'
+  LEFT JOIN field_data_field_website_link w ON w.entity_id = t.tid AND w.bundle = 'venue'
+  WHERE t.tid = :venue_tid
+EOT;
+
+  $rs = db_query($sql, array(":venue_tid" => $tid))->fetchObject();
+
+  $venue = array(
+    "tid" => (int) $tid,
+    "title" => $rs->name,
+    "url" => url('taxonomy/term/' . $tid, array('absolute' => TRUE)),
+    "address" => array(
+      "streetAddress" => $rs->field_address_thoroughfare,
+      "postalCode" => $rs->field_address_postal_code,
+      "city" => $rs->field_address_locality,
+      "countryIso" => $rs->field_address_country
+    ),
+    "privince" => $rs->field_province_value,
+    "website" => $rs->field_website_link_url
+  );
+  return $venue;
 }
 
 function _output_label($tid) {
