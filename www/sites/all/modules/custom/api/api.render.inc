@@ -276,7 +276,7 @@ EOT;
       "city" => $rs->field_address_locality,
       "countryIso" => $rs->field_address_country
     ),
-    "privince" => $rs->field_province_value,
+    "province" => $rs->field_province_value,
     "website" => $rs->field_website_link_url
   );
   return $venue;
