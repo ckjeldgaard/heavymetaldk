@@ -230,8 +230,6 @@ function _api_review($nid) {
 
 function _output_review($node, $published_at) {
 
-  $release_node = node_load($node->field_release[LANGUAGE_NONE][0]['target_id']);
-
   $title_parts = explode(" - ", $node->title);
 
   $review = array(
@@ -241,7 +239,7 @@ function _output_review($node, $published_at) {
     "releaseTitle" => $title_parts[1],
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
     "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
-    "release" => _output_release($release_node),
+    "release" => _output_release($node->field_release[LANGUAGE_NONE][0]['target_id']),
     "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
     "tagline" => $node->field_tagline[LANGUAGE_NONE][0]['safe_value'],
     "summary" => $node->body[LANGUAGE_NONE][0]['safe_summary'],
@@ -273,27 +271,58 @@ function _output_review($node, $published_at) {
   return $review;
 }
 
-function _output_release($node) {
+function _output_release($release_nid) {
+  $sql = <<<EOT
+  SELECT n.title,
+  t.field_release_title_value,
+  type.field_release_type_value,
+  rdate.field_release_date_value,
+  a.field_artist_target_id,
+  l.field_label_tid,
+  f.uri,
+  rt.field_running_time_value,
+  tr.field_tracks_value,
+  tl.field_tracklist_value
+  FROM node n
+  INNER JOIN field_data_field_release_title t ON t.entity_id = n.nid
+  INNER JOIN field_data_field_release_type type ON type.entity_id = n.nid
+  INNER JOIN field_data_field_release_date rdate ON rdate.entity_id = n.nid
+  INNER JOIN field_data_field_artist a ON a.entity_id = n.nid
+  INNER JOIN field_data_field_label l ON l.entity_id = n.nid
+  INNER JOIN field_data_field_image img ON img.entity_id = n.nid
+  INNER JOIN file_managed f ON f.fid = img.field_image_fid
+  LEFT JOIN field_data_field_running_time rt ON rt.entity_id = n.nid
+  LEFT JOIN field_data_field_tracks tr ON tr.entity_id = n.nid
+  LEFT JOIN field_data_field_tracklist tl ON tl.entity_id = n.nid
+  WHERE n.nid = :review_nid
+EOT;
+
+  $params = array(
+    ":review_nid" => $release_nid
+  );
+  $release = db_query($sql, $params)->fetchObject();
+
   $release = array(
-    "nid" => (int) $node->nid,
-    "title" => $node->title,
-    "releaseTitle" => $node->field_release_title[LANGUAGE_NONE][0]['safe_value'],
-    "releaseType" => $node->field_release_type[LANGUAGE_NONE][0]['value'],
-    "releaseDate" => (int) $node->field_release_date[LANGUAGE_NONE][0]['value'],
-    "artist" => _output_artist(node_load($node->field_artist[LANGUAGE_NONE][0]['target_id'])),
-    "label" => _output_label(taxonomy_term_load($node->field_label[LANGUAGE_NONE][0]['tid'])),
+    "nid" => (int) $release_nid,
+    "title" => $release->title,
+    "releaseTitle" => $release->field_release_title_value,
+    "releaseType" => $release->field_release_type_value,
+    "releaseDate" => (int) $release->field_release_date_value,
+    "artist" => _output_artist($release->field_artist_target_id),
+    "label" => _output_label(taxonomy_term_load($release->field_label_tid)),
     "images" => array(
-      "thumb" => image_cache('review_thumbnail', $node->field_image[LANGUAGE_NONE][0]),
-      "large" => image_cache('review', $node->field_image[LANGUAGE_NONE][0])
+      "thumb" => image_cache('review_thumbnail', $release->uri),
+      "large" => image_cache('review', $release->uri)
     ),
-    "runningTime" => $node->field_running_time[LANGUAGE_NONE][0]['value'],
-    "tracks" => (int) $node->field_tracks[LANGUAGE_NONE][0]['value'],
-    "tracklist" => $node->field_tracklist[LANGUAGE_NONE][0]['safe_value'],
+    "runningTime" => $release->field_running_time_value,
+    "tracks" => (int) $release->field_tracks_value,
+    "tracklist" => $release->field_tracklist_value,
   );
   return $release;
 }
 
-function _output_artist($node) {
+function _output_artist($nid) {
+  $node = node_load($nid);
   $artist = array(
     "nid" => (int) $node->nid,
     "title" => $node->title,
