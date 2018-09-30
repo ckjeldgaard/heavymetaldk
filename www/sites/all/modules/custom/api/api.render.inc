@@ -30,7 +30,9 @@ function _output_concert_review($node, $published_at) {
     $item = field_collection_item_load($c['value']);
     $concert_review['reviews'][] = array(
       "headline" => (isset($item->field_headline[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_headline[LANGUAGE_NONE][0]['safe_value'] : $item->field_headline[LANGUAGE_NONE][0]['value'],
-      "reviewTextHtml" => (isset($item->field_review_text[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_review_text[LANGUAGE_NONE][0]['safe_value'] : $item->field_review_text[LANGUAGE_NONE][0]['value']
+      "reviewTextHtml" => (isset($item->field_review_text[LANGUAGE_NONE][0]['safe_value'])) ? $item->field_review_text[LANGUAGE_NONE][0]['safe_value'] : $item->field_review_text[LANGUAGE_NONE][0]['value'],
+      "rating" => (int) $item->field_rating[LANGUAGE_NONE][0]['value'],
+      "image" => (isset($item->field_image[LANGUAGE_NONE][0])) ? image_cache('story', $item->field_image[LANGUAGE_NONE][0]) : null,
     );
   }
 
