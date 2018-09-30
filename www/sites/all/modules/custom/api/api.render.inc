@@ -13,9 +13,9 @@ function _output_review($node, $published_at) {
     "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
     "release" => _output_release($node->field_release[LANGUAGE_NONE][0]['target_id']),
     "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
-    "tagline" => $node->field_tagline[LANGUAGE_NONE][0]['safe_value'],
-    "summary" => $node->body[LANGUAGE_NONE][0]['safe_summary'],
-    "bodyHtml" => $node->body[LANGUAGE_NONE][0]['safe_value'],
+    "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
+    "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
+    "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
     "youtubeEmbedCode" => $node->field_embed_code[LANGUAGE_NONE][0]['safe_value'],
     "dates" => array(
       "created" => (int) $node->created,
