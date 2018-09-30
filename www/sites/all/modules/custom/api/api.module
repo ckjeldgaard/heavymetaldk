@@ -2,7 +2,7 @@
 
 define("API_VERSION", "v1");
 define("DEFAULT_PAGE_LIMIT", 25);
-define("MAXIMUM_PAGE_LIMIT", 50);
+define("MAXIMUM_PAGE_LIMIT", 100);
 
 require_once('api.admin.inc');
 require_once('api.render.inc');
