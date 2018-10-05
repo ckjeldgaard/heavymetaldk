@@ -3,6 +3,7 @@
 define("API_VERSION", "v1");
 define("DEFAULT_PAGE_LIMIT", 25);
 define("MAXIMUM_PAGE_LIMIT", 100);
+define("CACHE_ENABLED", TRUE);
 
 require_once('api.admin.inc');
 require_once('api.render.inc');
@@ -150,10 +151,10 @@ function _api_concert_reviews() {
   $items = &drupal_static(__FUNCTION__);
   $cache_cid = "api_concert_reviews_{$offset}_{$limit}";
   if (empty($data)) {
-    if ($cache = cache_get($cache_cid)) {
+    $cache = cache_get($cache_cid);
+    if (is_object($cache) && CACHE_ENABLED) {
       $items = $cache->data;
-    }
-    else {
+    } else {
       $items = _fetch_concert_reviews_from_db($offset, $limit);
       cache_set($cache_cid, $items, 'cache');
     }
@@ -195,10 +196,10 @@ function _api_reviews() {
   $items = &drupal_static(__FUNCTION__);
   $cache_cid = "api_reviews_{$offset}_{$limit}";
   if (empty($data)) {
-    if ($cache = cache_get($cache_cid)) {
+    $cache = cache_get($cache_cid);
+    if (is_object($cache) && CACHE_ENABLED) {
       $items = $cache->data;
-    }
-    else {
+    } else {
       $items = _fetch_reviews_from_db($offset, $limit);
       cache_set($cache_cid, $items, 'cache');
     }

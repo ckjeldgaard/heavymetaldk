@@ -15,9 +15,9 @@ function _output_concert_review($node, $published_at) {
     "conclusionHtml" => (isset($node->field_conclusion[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_conclusion[LANGUAGE_NONE][0]['safe_value'] : $node->field_conclusion[LANGUAGE_NONE][0]['value'],
     "primaryImage" => image_cache('story', $node->field_image[LANGUAGE_NONE][0]),
     "dates" => array(
-      "created" => (int) $node->created,
-      "changed" => (int) $node->changed,
-      "publishedAt" => (int) $published_at
+      "created" => date('c', $node->created),
+      "changed" => date('c', $node->changed),
+      "publishedAt" => date('c', $published_at)
     ),
     "author" => array(
       "uid" => (int) $node->uid,
@@ -57,9 +57,9 @@ function _output_review($node, $published_at) {
     "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
     "youtubeEmbedCode" => $node->field_embed_code[LANGUAGE_NONE][0]['safe_value'],
     "dates" => array(
-      "created" => (int) $node->created,
-      "changed" => (int) $node->changed,
-      "publishedAt" => (int) $published_at
+      "created" => date('c', $node->created),
+      "changed" => date('c', $node->changed),
+      "publishedAt" => date('c', $published_at)
     ),
     "author" => array(
       "uid" => (int) $node->uid,
@@ -118,8 +118,8 @@ EOT;
     "venue" => _output_venue($rs->field_venue_tid),
     "cancelled" => (bool) $rs->field_cancelled_value,
     "eventDate" => array(
-      "startDate" => (int) $rs->field_event_date_value,
-      "endDate" => (int) $rs->field_event_date_value2,
+      "startDate" => date('c', $rs->field_event_date_value),
+      "endDate" => date('c', $rs->field_event_date_value2),
     ),
     "festival" => array(
       "isFestival" => (bool) $rs->field_is_festival_value,
@@ -193,7 +193,7 @@ EOT;
     "title" => $release->title,
     "releaseTitle" => $release->field_release_title_value,
     "releaseType" => $release->field_release_type_value,
-    "releaseDate" => (int) $release->field_release_date_value,
+    "releaseDate" => date('c', $release->field_release_date_value),
     "artist" => _output_artist($release->field_artist_target_id),
     "label" => _output_label($release->field_label_tid),
     "images" => array(
