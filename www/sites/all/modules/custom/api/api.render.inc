@@ -256,6 +256,7 @@ EOT;
     "nid" => (int) $nid,
     "title" => $artist->title,
     "url" => url('node/' . $nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/artists/' . $nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
     "description" => $artist->field_description_value,
     "countryIso" => $artist->field_country_iso2,
   );
@@ -335,4 +336,64 @@ EOT;
     "websiteUrl" => $label->field_website_link_url
   );
   return $label;
+}
+
+function _output_artist_detailed($node, $published_at) {
+
+  $artist = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/artists/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "descriptionHtml" => $node->field_description[LANGUAGE_NONE][0]['safe_value'],
+    "logoImage" => (isset($node->field_logo[LANGUAGE_NONE][0])) ? image_cache('bandlogo', $node->field_logo[LANGUAGE_NONE][0]) : NULL,
+    "countryIso" => (isset($node->field_country[LANGUAGE_NONE][0])) ? $node->field_country[LANGUAGE_NONE][0]['iso2'] : NULL,
+    "websiteLink" => (isset($node->field_website_link[LANGUAGE_NONE][0])) ? $node->field_website_link[LANGUAGE_NONE][0]['url'] : NULL,
+    "genres" => array(),
+    "relatedArtists" => array(),
+    "reviews" => array(),
+    "interviews" => array(),
+  );
+
+  foreach ($node->field_artist_genres[LANGUAGE_NONE] as $g) {
+    $artist['genres'][] = _output_genre($g['tid']);
+  }
+
+  foreach ($node->field_related_bands[LANGUAGE_NONE] as $a) {
+    $artist['relatedArtists'][] = _output_artist($a['target_id']);
+  }
+
+  // Get reviews
+  $sql = <<<EOT
+  SELECT a.`entity_id` AS release_id, r.entity_id AS review_id, n.title
+  FROM `field_data_field_artist` a
+  INNER JOIN field_data_field_release r ON r.field_release_target_id = a.entity_id
+  INNER JOIN field_data_field_release_date d ON d.entity_id = a.entity_id
+  INNER JOIN node n ON n.nid = r.entity_id
+  WHERE a.`field_artist_target_id` = :artist_id
+  AND a.bundle = :bundle
+  ORDER BY d.field_release_date_value DESC
+EOT;
+  $rs = db_query($sql, array(':artist_id' => $node->nid, ':bundle' => 'release'));
+  foreach ($rs as $row) {
+    $artist['reviews'][] = array(
+      "nid" => (int) $row->review_id,
+      "title" => $row->title,
+      "url" => url('node/' . $row->review_id, array('absolute' => TRUE)),
+      "apiHref" => url('api/' . API_VERSION . '/reviews/' . $row->review_id, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    );
+  }
+
+  // Interviews
+  $interviews = _get_artist_interview($node->nid);
+  foreach ($interviews as $i) {
+    $artist['interviews'][] = array(
+      "nid" => (int) $i->nid,
+      "title" => $i->title,
+      "url" => url('node/' . $i->nid, array('absolute' => TRUE)),
+      "apiHref" => url('api/' . API_VERSION . '/interviews/' . $i->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    );
+  }
+
+  return $artist;
 }
