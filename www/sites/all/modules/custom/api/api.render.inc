@@ -6,6 +6,7 @@ function _output_concert_review($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/concert_reviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
     "concert" => _output_concert($node->field_concert[LANGUAGE_NONE][0]['target_id']),
     "rating" => (isset($node->field_rating[LANGUAGE_NONE][0]['value'])) ? (int) $node->field_rating[LANGUAGE_NONE][0]['value'] : NULL,
     "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
@@ -152,6 +153,36 @@ EOT;
   $concert_review["supportArtists"] = $support;
 
   return $concert_review;
+}
+
+function _output_interview($node, $published_at) {
+
+  $interview = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/interviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "primaryImage" => image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]),
+    "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
+    "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
+    "artist" => (isset($node->field_artist[LANGUAGE_NONE][0]['target_id'])) ? _output_artist($node->field_artist[LANGUAGE_NONE][0]['target_id']) : NULL,
+    "youtubeEmbedCode" => (isset($node->field_embed_code[LANGUAGE_NONE][0]['value'])) ? $node->field_embed_code[LANGUAGE_NONE][0]['value'] : NULL,
+    "dates" => array(
+      "created" => date('c', $node->created),
+      "changed" => date('c', $node->changed),
+      "publishedAt" => date('c', $published_at)
+    ),
+    "author" => array(
+      "uid" => (int) $node->uid,
+      "name" => $node->name,
+      "url" => url('user/' . $node->uid, array('absolute' => TRUE)),
+    ),
+    "meta" => array(
+      "detektoren" => ($node->field_detektoren[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE,
+    )
+  );
+
+  return $interview;
 }
 
 function _output_release($release_nid) {
