@@ -4,6 +4,7 @@ define("API_VERSION", "v1");
 define("DEFAULT_PAGE_LIMIT", 25);
 define("MAXIMUM_PAGE_LIMIT", 100);
 define("CACHE_ENABLED", TRUE);
+define("CACHE_LIFETIME_SECONDS", 900);
 
 require_once('api.admin.inc');
 require_once('api.render.inc');
@@ -175,11 +176,11 @@ function _api_concert_reviews() {
   $cache_cid = "api_concert_reviews_{$offset}_{$limit}";
   if (empty($data)) {
     $cache = cache_get($cache_cid);
-    if (is_object($cache) && CACHE_ENABLED) {
+    if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
       $items = $cache->data;
     } else {
       $items = _fetch_concert_reviews_from_db($offset, $limit);
-      cache_set($cache_cid, $items, 'cache');
+      cache_set($cache_cid, $items, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
     }
   }
 
@@ -220,11 +221,11 @@ function _api_interviews() {
   $cache_cid = "api_interviews_{$offset}_{$limit}";
   if (empty($data)) {
     $cache = cache_get($cache_cid);
-    if (is_object($cache) && CACHE_ENABLED) {
+    if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
       $items = $cache->data;
     } else {
       $items = _fetch_interviews_from_db($offset, $limit);
-      cache_set($cache_cid, $items, 'cache');
+      cache_set($cache_cid, $items, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
     }
   }
 
@@ -265,11 +266,11 @@ function _api_reviews() {
   $cache_cid = "api_reviews_{$offset}_{$limit}";
   if (empty($data)) {
     $cache = cache_get($cache_cid);
-    if (is_object($cache) && CACHE_ENABLED) {
+    if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
       $items = $cache->data;
     } else {
       $items = _fetch_reviews_from_db($offset, $limit);
-      cache_set($cache_cid, $items, 'cache');
+      cache_set($cache_cid, $items, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
     }
   }
 
@@ -422,11 +423,11 @@ function _handle_single_node($nid, $type, $render_function) {
   $item = &drupal_static(__FUNCTION__);
   $cache_cid = "api_single_node_{$type}_{$nid}";
   $cache = cache_get($cache_cid);
-  if (is_object($cache) && CACHE_ENABLED) {
+  if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
     $item = $cache->data;
   } else {
     $item = $render_function($node, $p['published_at']);
-    cache_set($cache_cid, $item, 'cache');
+    cache_set($cache_cid, $item, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
   }
 
   drupal_json_output(array(
