@@ -219,6 +219,14 @@ EOT;
   $image = new stdClass();
   $image->uri = $release->uri;
 
+  $track_list = array();
+  foreach(preg_split("/((\r?\n)|(\r\n?))/", $release->field_tracklist_value) as $track){
+    $track = preg_replace("/\s+/", " ", $track);
+    if (strlen($track) > 0) {
+      $track_list[] = rtrim(preg_replace("/\s+/", " ", $track));
+    }
+  }
+
   $release = array(
     "nid" => (int) $release_nid,
     "title" => $release->title,
@@ -233,7 +241,7 @@ EOT;
     ),
     "runningTime" => $release->field_running_time_value,
     "tracks" => (int) $release->field_tracks_value,
-    "tracklist" => $release->field_tracklist_value,
+    "tracklist" => $track_list
   );
   return $release;
 }
