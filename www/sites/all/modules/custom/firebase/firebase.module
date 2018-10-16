@@ -170,10 +170,14 @@ function _get_genres() {
 }
 
 function date_start_cmp($a, $b) {
-  if ($a['dateStart'] == $b['dateStart']) {
+  if (isset($a['dateStart']) && $b['dateStart']) {
+    if ($a['dateStart'] == $b['dateStart']) {
+      return 0;
+    }
+    return ($a['dateStart'] < $b['dateStart']) ? -1 : 1;
+  } else {
     return 0;
   }
-  return ($a['dateStart'] < $b['dateStart']) ? -1 : 1;
 }
 
 function _get_events() {
