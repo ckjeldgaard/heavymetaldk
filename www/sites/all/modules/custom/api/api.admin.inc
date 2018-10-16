@@ -5,7 +5,10 @@
  */
 function api_permission() {
   return array(
-    'administer api' => array(
+    'use rest api' => array(
+      'title' => t('Use REST API'),
+    ),
+    'administer rest api' => array(
       'title' => t('Administer REST API'),
     ),
   );
