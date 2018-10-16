@@ -170,7 +170,7 @@ function _get_genres() {
 }
 
 function date_start_cmp($a, $b) {
-  if (isset($a['dateStart']) && $b['dateStart']) {
+  if (isset($a['dateStart']) && isset($b['dateStart'])) {
     if ($a['dateStart'] == $b['dateStart']) {
       return 0;
     }
