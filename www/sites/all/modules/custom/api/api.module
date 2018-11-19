@@ -3,7 +3,7 @@
 define("API_VERSION", "v1");
 define("DEFAULT_PAGE_LIMIT", 25);
 define("MAXIMUM_PAGE_LIMIT", 100);
-define("CACHE_ENABLED", FALSE);
+define("CACHE_ENABLED", TRUE);
 define("CACHE_LIFETIME_SECONDS", 900);
 
 require_once('api.admin.inc');
