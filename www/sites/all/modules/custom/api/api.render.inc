@@ -221,6 +221,76 @@ function _output_news($node, $published_at) {
   return $news;
 }
 
+function _output_reportage($node, $published_at) {
+
+  $tabs = array();
+  if (isset($node->field_tabs[LANGUAGE_NONE])) {
+    for ($i = 0; $i < count($node->field_tabs[LANGUAGE_NONE]); $i++) {
+      $tab_item = field_collection_item_load($node->field_tabs[LANGUAGE_NONE][$i]['value']);
+      if (isset($tab_item->field_tab_headline[LANGUAGE_NONE][0]['machine']) && count($tab_item->field_reportage_review[LANGUAGE_NONE]) > 0) {
+
+        $reviews = array();
+        foreach ($tab_item->field_reportage_review[LANGUAGE_NONE] as $r) {
+          $review = field_collection_item_load($r['value']);
+
+          $author = NULL;
+          if (isset($review->field_author[LANGUAGE_NONE][0])) {
+            $a = user_load($review->field_author[LANGUAGE_NONE][0]['target_id']);
+            $author = array(
+              "uid" => (int) $a->uid,
+              "name" => $a->name,
+              "url" => url('user/' . $a->uid, array('absolute' => TRUE)),
+            );
+          }
+
+          $reviews[] = array(
+            "artist" => (isset($review->field_artist[LANGUAGE_NONE][0]['target_id'])) ? _output_artist($review->field_artist[LANGUAGE_NONE][0]['target_id']) : NULL,
+            "reviewText" => $review->field_review_text[LANGUAGE_NONE][0]['value'],
+            "rating" => (int) $review->field_rating[LANGUAGE_NONE][0]['value'],
+            "image" => (isset($review->field_image[LANGUAGE_NONE][0])) ? image_cache('story', $review->field_image[LANGUAGE_NONE][0]) : NULL,
+            "author" => $author,
+            "stage" => (isset($review->field_stage[LANGUAGE_NONE][0])) ? $review->field_stage[LANGUAGE_NONE][0]['value'] : NULL,
+            "time" => (isset($review->field_time[LANGUAGE_NONE][0])) ? date('c', $review->field_time[LANGUAGE_NONE][0]['value']) : NULL,
+          );
+        }
+
+        $tabs[] = array(
+          "title" => $tab_item->field_tab_headline[LANGUAGE_NONE][0]['human'],
+          "machineName" => $tab_item->field_tab_headline[LANGUAGE_NONE][0]['machine'],
+          "reviews" => $reviews
+        );
+      }
+
+
+    }
+  }
+
+  $reportage = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/reportages/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "primaryImage" => (isset($node->field_image[LANGUAGE_NONE][0])) ? image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]) : NULL,
+    "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
+    "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
+    "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
+    "tabs" => $tabs,
+    "dates" => array(
+      "created" => date('c', $node->created),
+      "changed" => date('c', $node->changed),
+      "publishedAt" => date('c', $published_at)
+    ),
+    "author" => array(
+      "uid" => (int) $node->uid,
+      "name" => $node->name,
+      "url" => url('user/' . $node->uid, array('absolute' => TRUE)),
+      "display" => (bool) $node->field_display_author[LANGUAGE_NONE][0]['value']
+    ),
+  );
+
+  return $reportage;
+}
+
 function _output_release($release_nid) {
   $sql = <<<EOT
   SELECT n.title,
