@@ -185,6 +185,42 @@ function _output_interview($node, $published_at) {
   return $interview;
 }
 
+function _output_news($node, $published_at) {
+
+  $artists = array();
+  foreach ($node->field_artists[LANGUAGE_NONE] as $a) {
+    $artists[] = _output_artist($a['target_id']);
+  }
+
+  $news = array(
+    "nid" => (int) $node->nid,
+    "title" => $node->title,
+    "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/news/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "primaryImage" => (isset($node->field_image[LANGUAGE_NONE][0])) ? image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]) : NULL,
+    "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
+    "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
+    "artists" => $artists,
+    "youtubeEmbedCode" => (isset($node->field_embed_code[LANGUAGE_NONE][0]['value'])) ? $node->field_embed_code[LANGUAGE_NONE][0]['value'] : NULL,
+    "source" => array(
+      "title" => $node->field_source[LANGUAGE_NONE][0]['title'],
+      "url" => $node->field_source[LANGUAGE_NONE][0]['url']
+    ),
+    "dates" => array(
+      "created" => date('c', $node->created),
+      "changed" => date('c', $node->changed),
+      "publishedAt" => date('c', $published_at)
+    ),
+    "author" => array(
+      "uid" => (int) $node->uid,
+      "name" => $node->name,
+      "url" => url('user/' . $node->uid, array('absolute' => TRUE)),
+    ),
+  );
+
+  return $news;
+}
+
 function _output_release($release_nid) {
   $sql = <<<EOT
   SELECT n.title,
