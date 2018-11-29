@@ -83,6 +83,7 @@ function _statistics_admin_form($form, &$form_state) {
     array('data' => t('Review'), 'field' => 'title'),
     array('data' => t('Rating'), 'field' => 'rating'),
     array('data' => t('Artist country'), 'field' => 'country'),
+    array('data' => t('Type'), 'field' => 'type'),
     array('data' => t('Review publish date'), 'field' => 'published_at', 'sort' => 'asc'),
     array('data' => t('Pageviews'), 'field' => 'pageviews')
   );
@@ -100,6 +101,7 @@ function _statistics_admin_form($form, &$form_state) {
   $query->addField('co', 'name', 'country');
   $query->addField('d', 'published_at');
   $query->addField('p', 'pageviews');
+  $query->addField('t', 'field_release_type_value', 'type');
   $query->innerJoin('field_data_field_release', 'r', 'n.nid = r.entity_id');
   $query->innerJoin('field_data_field_artist', 'a', 'r.field_release_target_id = a.entity_id');
   $query->join('publication_date', 'd', 'n.nid = d.nid');
@@ -107,6 +109,7 @@ function _statistics_admin_form($form, &$form_state) {
   $query->leftJoin('field_data_field_country', 'c', 'a.field_artist_target_id = c.entity_id');
   $query->leftJoin('countries_country', 'co', 'co.iso2 = c.field_country_iso2');
   $query->leftJoin('analytics_pageviews', 'p', 'p.nid = n.nid');
+  $query->join('field_data_field_release_type', 't', 't.entity_id = r.field_release_target_id');
   $query->condition('n.type', 'review');
   $query->condition('n.status', 1);
   $query->condition('d.published_at', $start_time, '>');
@@ -122,6 +125,7 @@ function _statistics_admin_form($form, &$form_state) {
       l($row->title, 'node/' . $row->nid),
       $row->rating,
       $row->country,
+      $row->type,
       format_date($row->published_at, 'displaydate_short'),
       $row->pageviews
     );
