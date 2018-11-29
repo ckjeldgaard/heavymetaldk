@@ -51,9 +51,13 @@ function _statistics_admin_form($form, &$form_state) {
   global $pager_total_items;
 
   $year = (isset($_GET['filter_year']) && in_array($_GET['filter_year'], _available_years())) ? $_GET['filter_year'] : date('Y');
+  $country =  (isset($_GET['filter_country']) && $_GET['filter_year'] != 0) ? $_GET['filter_country'] : FALSE;
   $show_all = (isset($_GET['filter_show_all'])) ? TRUE : FALSE;
   $element = 1; // Integer to distinguish between multiple pagers on same page.
   $num_per_page = ($show_all) ? 1000 : 50;
+
+  $countries_list = country_get_list();
+  array_unshift($countries_list, t('-- All --'));
 
   $form['#method'] = 'get';
 
@@ -68,6 +72,12 @@ function _statistics_admin_form($form, &$form_state) {
     '#type' => 'select',
     '#options' => _available_years(),
     '#default_value' => $year . '',
+  );
+  $form['filter']['filter_country'] = array(
+    '#title' => t('Country'),
+    '#type' => 'select',
+    '#options' => $countries_list,
+    '#default_value' => $country,
   );
   $form['filter']['filter_show_all'] = array(
     '#type' => 'checkbox',
@@ -114,6 +124,9 @@ function _statistics_admin_form($form, &$form_state) {
   $query->condition('n.status', 1);
   $query->condition('d.published_at', $start_time, '>');
   $query->condition('d.published_at', $end_time, '<');
+  if ($country) {
+    $query->condition('co.iso2', $country);
+  }
   $query->orderBy('d.published_at');
   $query->groupBy('n.nid');
 
