@@ -37,10 +37,10 @@ function review_publish_permission() {
  */
 function _review_publish_settings_form() {
   $form = array();
-  
+
   $form['email'] = array(
     '#type' => 'fieldset',
-    '#title' => t('E-mail contents'),
+    '#title' => t('Label and distributor e-mail contents'),
     '#collapsible' => TRUE,
     '#collapsed' => FALSE,
   );
@@ -66,7 +66,44 @@ function _review_publish_settings_form() {
     '#required' => TRUE,
     '#description' => t('Body of the notification email sent to editors when the review is ready to be published.<br />Possible placeholders:<br><ul><li>!receiver = Name of the user receiving the notification.</li><li>!user = Name of the user sending the notification.</li><li>!release_title = release title (incl. artist name).</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
   );
-  
+  $form['notice_email'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Internal notice e-mail contents'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t('Configuration of the internal email sent when a review receives a certain rating.')
+  );
+  $form['notice_email']['notice_email_receiver_email_address'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Receiver email address'),
+    '#default_value' => variable_get('notice_email_receiver_email_address'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('The email address receiving notice emails.'),
+  );
+  $form['notice_email']['notice_email_rating_threshold'] = array(
+    '#type' => 'select',
+    '#title' => t('Rating threshold'),
+    '#options' => array(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+    '#default_value' => variable_get('notice_email_rating_threshold'),
+    '#description' => t('Minimum rating of the review that will trigger an email.'),
+  );
+  $form['notice_email']['notice_email_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Subject'),
+    '#default_value' => variable_get('notice_email_subject'),
+    '#maxlength' => 128,
+    '#required' => TRUE,
+    '#description' => t('Subject of the internal review publish notification e-mail. Possible placeholders: !release_title = release title (incl. artist name).'),
+  );
+  $form['notice_email']['notice_email_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('E-mail body'),
+    '#default_value' => variable_get('notice_email_body'),
+    '#required' => TRUE,
+    '#description' => t('Body of the internal review publish notification e-mail.<br />Possible placeholders:<br><ul><li>!release_title = release title (incl. artist name).</li><li>!rating = The review rating.</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
+  );
+
   return system_settings_form($form);
 }
 
@@ -76,7 +113,7 @@ function _review_publish_settings_form() {
 function review_publish_form_alter(&$form, $form_state, $form_id) {
   if ($form_id == 'review_node_form' && $node = _review_publish_get_node_from_form_state($form_state) && user_access('publish and send email')) {
     if ($node->status == 0) {
-      
+
       $onclick = "return confirm('" . t('This button publishes the review and sends e-mail notifications to the selected label and/or distributor about it. Are you sure you want to continue?') . "');";
       $form['actions']['notify'] = array(
 	'#type' => 'submit',
@@ -89,14 +126,14 @@ function review_publish_form_alter(&$form, $form_state, $form_id) {
       );
     }
   }
-  
+
   // Disable publishing reviews option for reviewers.
   if ($form_id == 'review_node_form' && $node = _review_publish_get_node_from_form_state($form_state) && !user_access('publish and send email')) {
     $form['options']['status']['#access'] = FALSE;
-    
+
     // Notify editors when review is ready:
     if ($node->status == 0) {
-      
+
       $onclick = "return confirm('" . t('This button sends an e-mail notification to the editors saying the review is ready to be published. Are you sure you want to continue?') . "');";
       $form['actions']['ready'] = array(
 	'#type' => 'submit',
@@ -120,9 +157,14 @@ function review_publish_node_form_submit($form, &$form_state) {
     // Publish the node:
     $node->status = 1;
     node_save($node);
-  
+
     // Send e-mails:
     _review_publish_send_mails($node);
+
+    // Send internal notice email to news team if the review rating is over or equal to the defined rating  threshold:
+    if (isset($node->field_rating[LANGUAGE_NONE][0]['value']) && $node->field_rating[LANGUAGE_NONE][0]['value'] >= variable_get('notice_email_rating_threshold')) {
+      _review_publish_send_notice_mail($node);
+    }
   }
 }
 
@@ -134,10 +176,10 @@ function review_ready_node_form_submit($form, &$form_state) {
 
     // Save the node:
     node_save($node);
-  
+
     // Send e-mails to editors:
     _review_ready_send_mails($node);
-    
+
     drupal_set_message(t('An email notifications has been sent to the site editors.'));
   }
 }
@@ -149,17 +191,17 @@ function review_ready_node_form_submit($form, &$form_state) {
  */
 function _review_ready_send_mails(&$review_node) {
   global $user;
-  
+
   $languages = language_list();
   $language = $languages['en'];
-  
+
   // Set up common placeholder values:
   $params = array(
     'user' => $user->name,
     'release_title' => $review_node->title,
     'link' => url('node/' . $review_node->nid, array('absolute' => TRUE)),
   );
-  
+
   // Get editor email addresses:
   $editor_rid = 5; // Role ID of editors
   $query = db_select('users', 'u');
@@ -172,6 +214,21 @@ function _review_ready_send_mails(&$review_node) {
     drupal_mail('review_publish', 'ready', $email, $language, $params, $user->mail);
   }
 
+}
+
+function _review_publish_send_notice_mail(&$review_node) {
+  $languages = language_list();
+  $language = $languages['en'];
+  $from = "Heavymetal.dk <" . variable_get('site_mail', '') . ">";
+
+  // Set up common placeholder values:
+  $params = array(
+    'release_title' => $review_node->title,
+    'rating' => (isset($review_node->field_rating[LANGUAGE_NONE][0]['value'])) ? $review_node->field_rating[LANGUAGE_NONE][0]['value'] . "/10" : NULL,
+    'link' => url('node/' . $review_node->nid, array('absolute' => TRUE)),
+  );
+
+  drupal_mail('review_publish', 'notice', variable_get('notice_email_receiver_email_address'), $language, $params, $from);
 }
 
 /**
@@ -187,7 +244,7 @@ function _review_publish_send_mails(&$review_node) {
   $languages = language_list();
   $language = $languages['en'];
   $release = node_load($review_node->field_release[LANGUAGE_NONE][0]['target_id']);
-  
+
   // Set up common placeholder values:
   $params = array(
     'contact_name' => '',
@@ -195,7 +252,7 @@ function _review_publish_send_mails(&$review_node) {
     'rating' => (isset($review_node->field_rating[LANGUAGE_NONE][0]['value'])) ? $review_node->field_rating[LANGUAGE_NONE][0]['value'] . "/10" : NULL,
     'link' => url('node/' . $review_node->nid, array('absolute' => TRUE)),
   );
-  
+
   // If label contact is set:
   if (isset($release->field_label[LANGUAGE_NONE][0]['tid'])) {
     $label_term = taxonomy_term_load($release->field_label[LANGUAGE_NONE][0]['tid']);
@@ -206,7 +263,7 @@ function _review_publish_send_mails(&$review_node) {
 	$params['contact_name'] = $label_term->field_contact_name[LANGUAGE_NONE][0]['value'];
       }
       drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
-      
+
       // Log email being sent in DB:
       db_merge('review_email_log')
 	->key(array('email' => $email, 'nid' => $review_node->nid))
@@ -219,7 +276,7 @@ function _review_publish_send_mails(&$review_node) {
 	->execute();
     }
   }
-  
+
   // If distributor contact is set:
   if (isset($release->field_distributor[LANGUAGE_NONE][0]['tid'])) {
     $distro_term = taxonomy_term_load($release->field_distributor[LANGUAGE_NONE][0]['tid']);
@@ -231,7 +288,7 @@ function _review_publish_send_mails(&$review_node) {
 	$params['contact_name'] = $distro_term->field_contact_name[LANGUAGE_NONE][0]['value'];
       }
       drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
-      
+
       // Log email being sent in DB:
       db_merge('review_email_log')
 	->key(array('email' => $email, 'nid' => $review_node->nid))
@@ -272,6 +329,16 @@ function review_publish_mail($key, &$message, $params) {
 	'!link' => $params['link'],
       );
       $message['body'][] = t(variable_get('review_ready_email_body'), $body_args);
+      break;
+    case 'notice':
+      $langcode = $message['language']->language;
+      $message['subject'] = t(variable_get('notice_email_subject'), array('!release_title' => $params['release_title']));
+      $body_args = array(
+        '!release_title' => $params['release_title'],
+        '!rating' => $params['rating'],
+        '!link' => $params['link'],
+      );
+      $message['body'][] = t(variable_get('notice_email_body'), $body_args);
       break;
   }
 }
