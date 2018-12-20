@@ -228,7 +228,7 @@ function _review_publish_send_notice_mail(&$review_node) {
     'link' => url('node/' . $review_node->nid, array('absolute' => TRUE)),
   );
 
-  drupal_mail('review_publish', 'notice', variable_get('notice_email_receiver_email_address'), $language, $params, $from);
+  drupal_mail('review_publish', 'internal', variable_get('notice_email_receiver_email_address'), $language, $params, $from);
 }
 
 /**
@@ -330,7 +330,7 @@ function review_publish_mail($key, &$message, $params) {
       );
       $message['body'][] = t(variable_get('review_ready_email_body'), $body_args);
       break;
-    case 'notice':
+    case 'internal':
       $langcode = $message['language']->language;
       $message['subject'] = t(variable_get('notice_email_subject'), array('!release_title' => $params['release_title']));
       $body_args = array(
