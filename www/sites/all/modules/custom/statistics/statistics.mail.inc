@@ -27,7 +27,7 @@ function _send_pageview_emails() {
 function _send_mail($nid, $mail_type, $pageviews) {
   global $base_url;
   $url = $base_url . "/" . drupal_get_path_alias('node/' . $nid);
-  $site_email = variable_get('site_mail', '');
+  $site_email = "Heavymetal.dk <" . variable_get('site_mail', '') . ">";
 
   $sql = "SELECT n.title, u.name, u.mail ";
   $sql.= "FROM node n ";
