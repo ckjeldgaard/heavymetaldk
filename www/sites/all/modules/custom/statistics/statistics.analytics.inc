@@ -32,7 +32,7 @@ function _get_results($analytics, $profileId) {
     array(
       'dimensions' => 'ga:pagePath',
       'sort' => '-ga:pageviews',
-      'filters' => 'ga:pagePath=~^/anmeldelse/,ga:pagePath=~^/interview/',
+      'filters' => 'ga:pagePath=~^/anmeldelse/,ga:pagePath=~^/interview/,ga:pagePath=~^/koncertanmeldelse/',
       'max-results' => '8500'
     )
   );
