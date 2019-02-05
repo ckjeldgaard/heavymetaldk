@@ -10,8 +10,10 @@ define("MAIL_TYPE_HIGH", 1);
 function _send_pageview_emails() {
   $sql = "SELECT p.*, d.published_at FROM analytics_pageviews p ";
   $sql.= "INNER JOIN publication_date d ON d.nid = p.nid ";
+  $sql.= "INNER JOIN node n ON n.nid = p.nid ";
   $sql.= "WHERE p.pageviews >= :threshold ";
-  $sql.= "AND d.published_at >= :published_at";
+  $sql.= "AND d.published_at >= :published_at ";
+  $sql.= "AND n.type = 'review'";
   $rs = db_query($sql, array('threshold' => THRESHOLD_LOW, 'published_at' => EPOCH_DATE));
 
   foreach ($rs as $row) {
