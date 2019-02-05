@@ -11,16 +11,22 @@ function statistics_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => ['_statistics_admin_form'],
     'access arguments' => ['read statistics'],
-    'type' => MENU_NORMAL_ITEM,
   ];
+  $items['admin/config/statistics/reviews'] = array(
+    'title' => t('Reviews'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+
   $items['admin/config/statistics/emails'] = array(
     'title' => 'Statistics mails',
     'description' => 'Configure statistics emails',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('_statistics_mail_form'),
     'access arguments' => array('read statistics'),
-    'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_LOCAL_TASK,
   );
+
   return $items;
 }
 

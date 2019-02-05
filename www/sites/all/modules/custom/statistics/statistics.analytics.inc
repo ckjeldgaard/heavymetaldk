@@ -14,7 +14,7 @@ function statistics_cron() {
       $results = _get_results($analytics, $profile);
       _save_results($results->getRows());
 
-      watchdog('statistics', "Successfully updated :total reviews with Google Analytics data", array(':total' => $results->totalResults),WATCHDOG_INFO, NULL);
+      watchdog('statistics', "Successfully updated :total nodes with Google Analytics data", array(':total' => $results->totalResults),WATCHDOG_INFO, NULL);
       variable_set('analytics_last_sync_run', time());
     } catch (Exception $e) {
       watchdog('statistics', "Couldn't initialize Google Analytics. Check service account credentials JSON file. Error message: @error", array('@error' => $e->getMessage()),WATCHDOG_ERROR, NULL);
@@ -32,8 +32,8 @@ function _get_results($analytics, $profileId) {
     array(
       'dimensions' => 'ga:pagePath',
       'sort' => '-ga:pageviews',
-      'filters' => 'ga:pagePath=~^/anmeldelse/',
-      'max-results' => '8000'
+      'filters' => 'ga:pagePath=~^/anmeldelse/,ga:pagePath=~^/interview/',
+      'max-results' => '8500'
     )
   );
 }
