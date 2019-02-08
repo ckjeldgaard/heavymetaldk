@@ -52,9 +52,16 @@ function _review_publish_settings_form() {
     '#required' => TRUE,
     '#description' => t('Subject of the review publish notification e-mail sent to labels and distributors. Possible placeholders: !release_title = release title (incl. artist name).'),
   );
+  $form['email']['review_publish_email_body_high_rating'] = array(
+    '#type' => 'textarea',
+    '#title' => t('E-mail body (for rating >= 8)'),
+    '#default_value' => variable_get('review_publish_email_body_high_rating'),
+    '#required' => TRUE,
+    '#description' => t('Body of the review publish notification e-mail sent to labels and distributors.<br />Possible placeholders:<br><ul><li>!name = Name of receiver.</li><li>!release_title = release title (incl. artist name).</li><li>!rating = The review rating.</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
+  );
   $form['email']['review_publish_email_body'] = array(
     '#type' => 'textarea',
-    '#title' => t('E-mail body'),
+    '#title' => t('E-mail body (for rating < 8)'),
     '#default_value' => variable_get('review_publish_email_body'),
     '#required' => TRUE,
     '#description' => t('Body of the review publish notification e-mail sent to labels and distributors.<br />Possible placeholders:<br><ul><li>!name = Name of receiver.</li><li>!release_title = release title (incl. artist name).</li><li>!rating = The review rating.</li><li>!link = Link to the review on heavymetal.dk.</li></ul>'),
@@ -234,7 +241,8 @@ function _review_publish_send_notice_mail(&$review_node) {
 /**
  * Sends e-mails to label and distributor
  *
- * @param int $release_nid Node id of the release being published.
+ * @param object $review_node Node id of the release being published.
+ * @throws InvalidMergeQueryException
  */
 function _review_publish_send_mails(&$review_node) {
 
@@ -257,23 +265,26 @@ function _review_publish_send_mails(&$review_node) {
   if (isset($release->field_label[LANGUAGE_NONE][0]['tid'])) {
     $label_term = taxonomy_term_load($release->field_label[LANGUAGE_NONE][0]['tid']);
     if (isset($label_term->field_contact_email[LANGUAGE_NONE][0]['email'])) {
-      $email = $label_term->field_contact_email[LANGUAGE_NONE][0]['email'];
-      //$email = 'christoffer@sappy.dk';
-      if (isset($label_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
-	$params['contact_name'] = $label_term->field_contact_name[LANGUAGE_NONE][0]['value'];
-      }
-      drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
 
-      // Log email being sent in DB:
-      db_merge('review_email_log')
-	->key(array('email' => $email, 'nid' => $review_node->nid))
-	->fields(array(
-	  'email' => $email,
-	  'nid' => $review_node->nid,
-	  'timestamp' => time(),
-	  'uid' => $user->uid
-	))
-	->execute();
+      foreach ($label_term->field_contact_email[LANGUAGE_NONE] as $contact) {
+        $email = $contact['email'];
+
+        if (isset($label_term->field_contact_name[LANGUAGE_NONE][0]['value'])) {
+          $params['contact_name'] = $label_term->field_contact_name[LANGUAGE_NONE][0]['value'];
+        }
+        drupal_mail('review_publish', 'notice', $email, $language, $params, $site_email);
+
+        // Log email being sent in DB:
+        db_merge('review_email_log')
+        ->key(array('email' => $email, 'nid' => $review_node->nid))
+        ->fields(array(
+          'email' => $email,
+          'nid' => $review_node->nid,
+          'timestamp' => time(),
+          'uid' => $user->uid
+        ))
+        ->execute();
+      }
     }
   }
 
@@ -317,7 +328,12 @@ function review_publish_mail($key, &$message, $params) {
 	'!rating' => $params['rating'],
 	'!link' => $params['link'],
       );
-      $message['body'][] = t(variable_get('review_publish_email_body'), $body_args);
+      if ($params['rating'] >= 8) {
+        $msg = t(variable_get('review_publish_email_body_high_rating'), $body_args);
+      } else {
+        $msg = t(variable_get('review_publish_email_body'), $body_args);
+      }
+      $message['body'][] = $msg;
       break;
     case 'ready':
       $langcode = $message['language']->language;
