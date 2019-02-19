@@ -86,6 +86,9 @@ function workflow_block_info() {
   $blocks['block-accreditations'] = array(
     'info' => t('Accreditations'),
   );
+  $blocks['block-high-priority-concerts'] = array(
+    'info' => t('High priority concerts'),
+  );
   $blocks['block-interview-requests'] = array(
     'info' => t('Interview requests'),
   );
@@ -121,6 +124,10 @@ function workflow_block_view($delta) {
     case 'block-accreditations':
       $block['subject'] = t('Concert accreditations');
       $block['content'] = theme('block-accreditations', array('content' => _block_accreditations()));
+      break;
+    case 'block-high-priority-concerts':
+      $block['subject'] = t('High priority concerts');
+      $block['content'] = theme('block-high-priority-concerts', array('content' => _block_high_priority_concerts()));
       break;
     case 'block-interview-requests':
       $block['subject'] = t('Interview requests');
@@ -163,6 +170,11 @@ function workflow_theme() {
     ),
     'block-accreditations' => array(
       'template' => 'block--block-accreditations',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'workflow'),
+    ),
+    'block-high-priority-concerts' => array(
+      'template' => 'block--block-high-priority-concerts',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'workflow'),
     ),
@@ -641,6 +653,94 @@ function _block_interview_requests() {
     'count' => $pager_interview_requests_total_items[1],
     'form' => $form,
   );
+}
+
+function _block_high_priority_concerts() {
+  $element = 11; // Integer to distinguish between multiple pagers on same page.
+
+  $days = 4;
+  $limit = 86400 * $days;
+  $date_limit = time() - $limit;
+
+  $header = array(
+    array('data' => t('Concert'), 'field' => 'title'),
+    t('Genre'),
+    t('Venue'),
+    array('data' => t('Date'), 'field' => 'field_event_date_value', 'sort' => 'asc'),
+    t('Actions'),
+  );
+
+  $query = db_select('node', 'n')
+    ->extend('PagerDefault')->element($element)
+    ->limit(10)
+    ->extend('TableSort')
+    ->orderByHeader($header);
+  $query->fields('n', array('nid', 'title'));
+  $query->fields('f', array('field_is_festival_value'));
+  $query->fields('v', array('field_venue_tid'));
+  $query->fields('d', array('field_event_date_value', 'field_event_date_value2'));
+  $query->fields('r', array('field_reviewers_target_id'));
+
+  $query->leftJoin('field_data_field_concert', 'c', 'c.field_concert_target_id = n.nid');
+  $query->join('field_data_field_event_date', 'e', 'e.entity_id = n.nid');
+  $query->join('field_data_field_is_festival', 'f', 'f.entity_id = n.nid');
+  $query->join('field_data_field_venue', 'v', 'v.entity_id = n.nid');
+  $query->join('field_data_field_event_date', 'd', 'd.entity_id = n.nid');
+  $query->leftJoin('field_data_field_reviewers', 'r', 'r.entity_id = n.nid');
+
+  $query->condition('n.status', 1);
+  $query->condition('n.sticky', 1);
+  $query->condition('n.type', 'concert');
+  $query->isNull('r.field_reviewers_target_id');
+  $query->condition('e.field_event_date_value', $date_limit, '>');
+
+  $results = $query->execute();
+
+  $concerts = array();
+
+  foreach ($results as $row) {
+
+    $title_parts = explode(" - ", $row->title);
+    $venue = taxonomy_term_load($row->field_venue_tid);
+    $title = "<strong>" . $title_parts[0] . "</strong>";
+
+    $date = format_date($row->field_event_date_value, 'displaydate_short');
+    if ($row->field_is_festival_value == 1 && $row->field_event_date_value2 != $row->field_event_date_value) {
+      $date .= " - " .  format_date($row->field_event_date_value2, 'displaydate_short');
+    }
+
+    $concerts[$row->nid] = array(
+      'concert' => $title,
+      'genre' => ($row->field_is_festival_value == 1) ? '' : _concert_genre($row->nid),
+      'venue' => $venue->name . ", " . $venue->field_address[LANGUAGE_NONE][0]['locality'],
+      'date' => $date,
+      'actions' => l(t('edit'), 'node/' . $row->nid . '/edit'),
+    );
+  }
+
+  $output = theme('table', array('header' => $header, 'rows' => $concerts));
+
+  $pager = array('#theme' => 'pager', '#element' => $element);
+  $output .= render($pager);
+
+  global $pager_high_priority_concerts_total_items;
+
+  return array(
+    'table' => $output,
+    'count' => $pager_high_priority_concerts_total_items[1],
+  );
+}
+
+function _concert_genre($nid) {
+  $sql = "SELECT t.name ";
+  $sql.= "FROM node n ";
+  $sql.= "INNER JOIN field_data_field_artists a ON a.entity_id = n.nid ";
+  $sql.= "INNER JOIN field_data_field_artist_genres g ON g.entity_id = a.field_artists_target_id ";
+  $sql.= "INNER JOIN taxonomy_term_data t ON t.tid = g.field_artist_genres_tid ";
+  $sql.= "WHERE n.nid = :nid AND a.delta = :delta";
+
+  $rs = db_query($sql, array(':nid' => $nid, ':delta' => 0))->fetchAssoc();
+  return (isset($rs['name'])) ? $rs['name'] : '';
 }
 
 function _block_accreditations() {
