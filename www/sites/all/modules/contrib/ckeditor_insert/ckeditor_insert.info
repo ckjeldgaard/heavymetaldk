@@ -4,11 +4,10 @@ package = User interface
 core = 7.x
 dependencies[] = insert
 configure = admin/config/content/ckeditor_insert
-php = 5.4
+php = 5.3
 
-; Information added by Drupal.org packaging script on 2017-11-03
-version = "7.x-1.1"
+; Information added by Drupal.org packaging script on 2018-10-31
+version = "7.x-1.2"
 core = "7.x"
 project = "ckeditor_insert"
-datestamp = "1509716591"
-
+datestamp = "1540983183"
