@@ -245,7 +245,7 @@ function _output_reportage($node, $published_at) {
 
           $reviews[] = array(
             "artist" => (isset($review->field_artist[LANGUAGE_NONE][0]['target_id'])) ? _output_artist($review->field_artist[LANGUAGE_NONE][0]['target_id']) : NULL,
-            "reviewText" => $review->field_review_text[LANGUAGE_NONE][0]['value'],
+            "reviewTextHtml" => $review->field_review_text[LANGUAGE_NONE][0]['value'],
             "rating" => (int) $review->field_rating[LANGUAGE_NONE][0]['value'],
             "image" => (isset($review->field_image[LANGUAGE_NONE][0])) ? image_cache('story', $review->field_image[LANGUAGE_NONE][0]) : NULL,
             "author" => $author,
@@ -265,6 +265,8 @@ function _output_reportage($node, $published_at) {
     }
   }
 
+  $concert_ref = $node->field_concert_reference[LANGUAGE_NONE][0]['target_id'];
+
   $reportage = array(
     "nid" => (int) $node->nid,
     "title" => $node->title,
@@ -275,6 +277,7 @@ function _output_reportage($node, $published_at) {
     "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
     "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
     "tabs" => $tabs,
+    "concert" => ($concert_ref != NULL) ? _output_concert($concert_ref) : NULL,
     "dates" => array(
       "created" => date('c', $node->created),
       "changed" => date('c', $node->changed),
