@@ -364,6 +364,18 @@ function _get_artist_concerts($artist_nid) {
       $review = _concert_has_reportage($node->nid);
     }
 
+    $review_label = t('Read review');
+    if (is_numeric($review)) {
+      $sql = "SELECT n.type FROM node n WHERE n.nid = :nid";
+      $obj = db_query($sql, array(":nid" => $review))->fetchObject();
+
+      if ($obj->type == "gallery") {
+        $review_label = t('See gallery');
+      } else if ($obj->type == "reportage") {
+        $review_label = t('Read reportage');
+      }
+    }
+
     $concerts[] = array(
       'type' => 'concert',
       'node' => $node,
@@ -371,6 +383,7 @@ function _get_artist_concerts($artist_nid) {
       'venue' => (isset($node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($node->field_venue[LANGUAGE_NONE][0]['tid']) : FALSE,
       'cancelled' => $node->field_cancelled[LANGUAGE_NONE][0]['value'],
       'review' => $review,
+      'review_label' => $review_label,
       'date' => $node->field_event_date[LANGUAGE_NONE][0]['value'],
       'endDate' => $node->field_event_date[LANGUAGE_NONE][0]['value2'],
     );

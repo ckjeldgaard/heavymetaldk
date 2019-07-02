@@ -70,7 +70,8 @@ function _content_types() {
     'interview',
     'concert_review',
     'contest',
-    'news'
+    'news',
+    'gallery'
   );
 }
 

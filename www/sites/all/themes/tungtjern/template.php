@@ -662,6 +662,9 @@ function _get_type($node_type, $css = TRUE) {
     case 'poll':
       $type = t('Poll');
       break;
+    case 'gallery':
+      $type = t('Gallery');
+      break;
     default:
       $type = FALSE;
       break;

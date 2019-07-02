@@ -208,6 +208,17 @@ function _preprocess_poll(&$node) {
 }
 
 /**
+ * Preprocess gallery node.
+ */
+function _preprocess_gallery(&$node) {
+  $concert = NULL;
+  if (isset($node->field_concert[LANGUAGE_NONE][0]['entity'])) {
+    $concert = $node->field_concert[LANGUAGE_NONE][0]['entity'];
+  }
+  $node->concert = $concert;
+}
+
+/**
  * Preprocess concert review node.
  */
 function _preprocess_concert_review(&$node) {

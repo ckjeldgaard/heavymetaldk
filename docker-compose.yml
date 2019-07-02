@@ -10,7 +10,7 @@ services:
     volumes:
       - ~/IdeaProjects/heavymetaldk/www:/var/www/html
     links:
-      - db
+      - db:mysql
   php-myadmin:
     image: phpmyadmin/phpmyadmin
     ports:

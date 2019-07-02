@@ -127,7 +127,7 @@
       <?php else: ?>
       <td data-label="Sted"></td>
       <?php endif; ?>
-      <td data-label=""><div class="<?php print get_edit_classes($c['node']); ?>"></div><?php if ($c['review']): print l('Læs anmeldelse', 'node/' . $c['review']); endif; ?></td>
+      <td data-label=""><div class="<?php print get_edit_classes($c['node']); ?>"></div><?php if ($c['review']): print l($c['review_label'], 'node/' . $c['review']); endif; ?></td>
     </tr>
   <?php endforeach; ?>
   </tbody>
