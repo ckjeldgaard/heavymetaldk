@@ -86,7 +86,7 @@
       </div>
       <?php if (isset($review->field_image[LANGUAGE_NONE][0])): ?>
 	<div class="img <?php if ($swap == 0) : $swap = 1; ?>left<?php else: $swap = 0; ?>right<?php endif; ?>">
-	<a href="<?php print image_cache('gallery_large', $review->field_image[LANGUAGE_NONE][0]); ?>" class="reviewimage" <?php if (strlen($review->field_image[LANGUAGE_NONE][0]['title']) > 0): ?>data-title="<?php print $review->field_image[LANGUAGE_NONE][0]['title']; ?>"<?php endif; ?>><img src="<?php print image_cache('concert_thumb', $review->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print $review->field_image[LANGUAGE_NONE][0]['alt']; ?>" /></a>
+	<a href="<?php print image_cache('gallery_large', $review->field_image[LANGUAGE_NONE][0]); ?>" class="reviewimage" <?php if (strlen($review->field_image[LANGUAGE_NONE][0]['title']) > 0): ?-title="<?php print $review->field_image[LANGUAGE_NONE][0]['title']; ?>"<?php endif; ?>><img src="<?php print image_cache('concert_thumb', $review->field_image[LANGUAGE_NONE][0]); ?>" alt="<?php print $review->field_image[LANGUAGE_NONE][0]['alt']; ?>" /></a>
 	</div>
       <?php endif; ?>
       <div itemprop="reviewBody">
@@ -114,7 +114,7 @@
   <div id="galleri" class="reportage-gallery">
     <h2>Billedegalleri</h2>
     <?php foreach ($node->field_photos[LANGUAGE_NONE] as $img) : ?>
-      <a href="<?php print image_cache('gallery_large', $img); ?>" class-="concertgallery" <?php if (strlen($img['title']) > 0): ?>data-title="<?php print check_plain($img['title']); ?>"<?php endif; ?>><img src="<?php print image_cache('gallery_thumbnail', $img); ?>" alt="<?php print check_plain($img['alt']); ?>" /></a>
+      <a href="<?php print image_cache('gallery_large', $img); ?>" class-="concertgallery" <?php if (strlen($img['title']) > 0): ?>title="<?php print check_plain($img['title']); ?>"<?php endif; ?>><img src="<?php print image_cache('gallery_thumbnail', $img); ?>" alt="<?php print check_plain($img['alt']); ?>" /></a>
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
