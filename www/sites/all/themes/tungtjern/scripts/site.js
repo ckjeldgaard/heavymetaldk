@@ -195,11 +195,6 @@ $('.query').on('typeahead:selected', function(event, selection) {
     download: false,
     thumbnail: true
   });
-  $("#concert-review-gallery").lightGallery({
-    selector: '.concertgallery',
-    download: false,
-    thumbnail: true
-  });
   $("#concert-reviews").lightGallery({
     selector: '.reviewimage',
     download: false,

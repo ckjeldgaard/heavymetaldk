@@ -1,3 +1,5 @@
+
+<div id="concert-reviews">
 <article>
   
 <div class="pure-g byline">
@@ -66,7 +68,6 @@
   <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
 <?php endif; ?>
 
-<div id="concert-reviews">
 <?php if (count($node->concert_reviews) > 0) : ?>
   <?php $c = 1; $swap = 0; ?>
   <?php foreach($node->concert_reviews as $r) : ?>
@@ -89,7 +90,6 @@
     <?php $c++; ?>
   <?php endforeach; ?>
 <?php endif; ?>
-</div>
 
 <?php if (isset($node->field_conclusion[LANGUAGE_NONE][0])) : ?>
   <?php print $node->field_conclusion[LANGUAGE_NONE][0]['safe_value']; ?>
@@ -99,11 +99,12 @@
 
 <?php if ($node->has_galley) : ?>
 <div class="gallery" id="concert-review-gallery">
-<h2 id="galleri">Billedegalleri</h2>
+<h2 id="galleri"><?php print t('Photo gallery'); ?></h2>
 <?php foreach ($node->field_photos[LANGUAGE_NONE] as $img) : ?>
-  <a href="<?php print image_cache('gallery_large', $img); ?>" class="concertgallery" <?php if (strlen($img['title']) > 0): ?>title="<?php print check_plain($img['title']); ?>"<?php endif; ?>><img src="<?php print image_cache('gallery_thumbnail', $img); ?>" alt="<?php print check_plain($img['alt']); ?>" /></a>
+  <a href="<?php print image_cache('gallery_large', $img); ?>" class="reviewimage" <?php if (strlen($img['title']) > 0): ?>title="<?php print check_plain($img['title']); ?>"<?php endif; ?>><img src="<?php print image_cache('gallery_thumbnail', $img); ?>" alt="<?php print check_plain($img['alt']); ?>" /></a>
 <?php endforeach; ?>
 </div>
 <?php endif; ?>
+</div>
 
 <?php print render($content['comments']); ?>
