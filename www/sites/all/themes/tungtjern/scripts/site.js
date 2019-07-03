@@ -175,6 +175,37 @@ $('.query').on('typeahead:selected', function(event, selection) {
       $('#province-form').submit();
   });
 
+  $("#lightgallery").lightGallery({
+    selector: '.item',
+    download: false,
+    thumbnail: true
+  }); 
+  $("#reportage-content").lightGallery({
+    selector: '.reviewimage',
+    download: false,
+    thumbnail: true
+  });
+  $("#tab-container").lightGallery({
+    selector: '.reviewimage',
+    download: false,
+    thumbnail: true
+  }); 
+  $("#reportage-gallery").lightGallery({
+    selector: '.concertgallery',
+    download: false,
+    thumbnail: true
+  });
+  $("#concert-review-gallery").lightGallery({
+    selector: '.concertgallery',
+    download: false,
+    thumbnail: true
+  });
+  $("#concert-reviews").lightGallery({
+    selector: '.reviewimage',
+    download: false,
+    thumbnail: true
+  });
+
   if ($.isFunction($.fn.dataTable)) {
   $('#bands').dataTable( {
     "language": {

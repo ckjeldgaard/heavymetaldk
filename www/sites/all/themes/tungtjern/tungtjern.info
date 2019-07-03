@@ -6,7 +6,6 @@ engine = phptemplate
 
 stylesheets[all][] = styles/pure-min.css
 stylesheets[all][] = styles/grids-responsive-min.css
-stylesheets[all][] = styles/lightbox.css
 stylesheets[all][] = styles/slick/slick.css
 stylesheets[all][] = styles/slick/slick-theme.css
 stylesheets[all][] = styles/style.css
@@ -14,11 +13,9 @@ stylesheets[all][] = styles/style.css
 scripts[] = scripts/raty/jquery.raty.min.js
 scripts[] = scripts/jquery.pajinate.min.js
 scripts[] = scripts/slick.min.js
-scripts[] = scripts/lightbox.min.js
 scripts[] = scripts/typeahead.bundle.js
 scripts[] = scripts/js.cookie.js
 scripts[] = scripts/site.js
-scripts[] = sites/all/libraries/*
 
 blacklist[stylesheets][] = "modules/system/*"
 blacklist[stylesheets][] = "modules/comment/*"

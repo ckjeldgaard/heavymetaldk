@@ -39,9 +39,9 @@
   <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
 <?php endif; ?>
 
-<div class="gallery">
+<div id="lightgallery" class="gallery">
 <?php foreach ($node->field_photos[LANGUAGE_NONE] as $img) : ?>
-  <a href="<?php print image_cache('gallery_large', $img); ?>" data-lightbox="concertgallery" <?php if (strlen($img['title']) > 0): ?>data-title="<?php print check_plain($img['title']); ?>"<?php endif; ?>><img src="<?php print image_cache('gallery_thumbnail', $img); ?>" alt="<?php print check_plain($img['alt']); ?>" /></a>
+  <a href="<?php print image_cache('gallery_large', $img); ?>" class="item" <?php if (strlen($img['title']) > 0): ?>title="<?php print check_plain($img['title']); ?>"<?php endif; ?>><img src="<?php print image_cache('gallery_thumbnail', $img); ?>" alt="<?php print check_plain($img['alt']); ?>" /></a>
 <?php endforeach; ?>
 </div>
 

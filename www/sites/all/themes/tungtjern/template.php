@@ -97,6 +97,10 @@ function tungtjern_form_alter(&$form, &$form_state, $form_id) {
  */
 function tungtjern_preprocess_html(&$variables) {
   global $base_root;
+  
+  drupal_add_css('https://cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.12/css/lightgallery.css', 'external');
+  drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/lightgallery/1.6.12/js/lightgallery.min.js', 'external');
+  drupal_add_js('https://cdnjs.cloudflare.com/ajax/libs/lg-thumbnail/1.1.0/lg-thumbnail.min.js', 'external');
 
   $font_awesome_path = drupal_get_path('theme', 'tungtjern') . "/styles/font-awesome.min.css";
   drupal_add_css($font_awesome_path, array('group' => CSS_THEME, 'type' => 'file', 'preprocess' => FALSE));
