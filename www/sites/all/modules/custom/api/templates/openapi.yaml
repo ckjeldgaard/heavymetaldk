@@ -16,6 +16,51 @@ tags:
       description: Browse
       url: 'https://heavymetal.dk.dk/anmeldelser'
 paths:
+  '/reviews':
+    get:
+      tags:
+        - review
+      summary: Get a list of reviews
+      parameters:
+        - name: offset
+          in: query
+          description: The ranking number of the first review returned
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: Number of reviews returned in one request
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 25
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Invalid API key. You must be granted a valid key.
+          content: {}
+      security:
+        - api_key: []
   '/reviews/{nodeId}':
     get:
       tags:
@@ -185,12 +230,34 @@ components:
           description: Genre term ID
           format: int64
           example: 1703
-        created:
+        title:
           type: string
           example: Thrash metal
         url:
           type: string
           example: 'https://heavymetal.dk/genre/thrash-metal'
+    Label:
+      type: object
+      properties:
+        tid:
+          type: integer
+          description: Label term ID
+          format: int64
+          example: 1099
+        title:
+          type: string
+          example: Universal Records
+        url:
+          type: string
+          example: 'https://heavymetal.dk/pladeselskab/universal-records'
+        countryIso:
+          type: string
+          example: US
+          description: 'ISO 3166-1 alpha-2 two-letter country code.'
+        websiteUrl:
+          type: string
+          example: 'http://www.universalrecords.com'
+          description: Label website URL
     Release:
       type: object
       properties:
@@ -222,10 +289,34 @@ components:
           example: '1986-10-06T23:00:00.000Z'
         artist:
           type: object
-          properties: {}
+          properties: 
+            nid:
+              type: integer
+              description: Artist node ID.
+              format: int64
+              example: 180
+            title:
+              type: string
+              example: Slayer
+              description: Artist name
+            url:
+              type: string
+              example: 'https://heavymetal.dk/artist/slayer'
+              description: Artist URL
+            apiHref:
+              type: string
+              example: 'https://heavymetal.dk/api/v1/artists/180?api_key=[API_KEY]'
+            description:
+              type: string
+              nullable: true
+              example: null
+              description: Artist HTML description text
+            countryIso:
+              type: string
+              example: US
+              description: 'ISO 3166-1 alpha-2 two-letter country code.'
         label:
-          type: object
-          properties: {}
+          $ref: '#/components/schemas/Label'
         images:
           type: object
           properties:
