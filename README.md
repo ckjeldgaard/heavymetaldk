@@ -19,6 +19,22 @@ docker-compose up -d --build
 
 When the web server is running, [phpMyAdmin](https://www.phpmyadmin.net/) will be available from `http://localhost:8080`.
 
+## Importing data to MySQL database
+
+Given a backup SQL file named `backup.sql`, execute the following command to import data to the MySQL database running in the Docker image `heavymetaldk_db_1`:
+
+``` bash
+cat backup.sql | docker exec -i heavymetaldk_db_1 /usr/bin/mysql -u root --password=docker db_heavymetaldk
+```
+
+If this is the first installation, create a new MySQL user named `hmdk` with access to the `db_heavymetaldk` database:
+
+``` bash
+CREATE USER 'hmdk'@'%' IDENTIFIED WITH mysql_native_password AS '[STRONG_MYSQL_PASSWORD]'; GRANT USAGE ON *.* TO 'hmdk'@'%' REQUIRE NONE WITH MAX_QUERIES_PER_HOUR 0 MAX_CONNECTIONS_PER_HOUR 0 MAX_UPDATES_PER_HOUR 0 MAX_USER_CONNECTIONS 0; GRANT ALL PRIVILEGES ON `db_heavymetaldk`.* TO 'hmdk'@'%';
+```
+
+Afterwards, copy the `www/sites/default/default.settings.php` to a new file named `www/sites/default/settings.php` and insert the database access options as described in [this page from the offical Drupal 7 documentation](https://www.drupal.org/docs/7/install/step-3-create-settingsphp-and-the-files-directory).
+
 ## Deployment
 
 A [Gulp](https://gulpjs.com/) task called `deploy` will upload all www-files changed since last Git commit through FTP. To run the task, run the following command:
