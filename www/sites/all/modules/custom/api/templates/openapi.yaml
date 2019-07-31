@@ -1,185 +1,274 @@
-swagger: "2.0"
+openapi: 3.0.1
 info:
-  description: "This is the official Heavymetal.dk REST API. In order to use the API, you must be granted an access key available upon request."
-  version: "1.0"
-  title: "Heavymetal.dk API"
+  title: Heavymetal.dk API
+  description: >-
+    This is the official Heavymetal.dk REST API. In order to use the API, you
+    must be granted an access key available upon request.
   contact:
-    url: "https://heavymetal.dk/contact"
-host: "heavymetal.dk"
-basePath: "/api/v1"
+    url: 'https://heavymetal.dk/contact'
+  version: '1.0'
+servers:
+  - url: 'https://heavymetal.dk/api/v1'
 tags:
-- name: "review"
-  description: "Album review"
-  externalDocs:
-    description: "Browse"
-    url: "https://heavymetal.dk.dk/anmeldelser"
-schemes:
-- "https"
+  - name: review
+    description: Album review
+    externalDocs:
+      description: Browse
+      url: 'https://heavymetal.dk.dk/anmeldelser'
 paths:
-  /reviews/{nodeId}:
+  '/reviews/{nodeId}':
     get:
       tags:
-      - "review"
-      summary: "Get a single review"
-      produces:
-      - "application/json"
+        - review
+      summary: Get a single review
       parameters:
-      - name: "nodeId"
-        in: "path"
-        description: "Node ID of review to return"
-        required: true
-        type: "integer"
-        format: "int64"
+        - name: nodeId
+          in: path
+          description: Node ID of review to return
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
-        200:
-          description: "successful operation"
-          schema:
-            type: "object"
-            properties:
-              data:
-                $ref: "#/definitions/Review"
-        400:
-          description: "Invalid parameters."
-          schema:
-            $ref: "#/definitions/Error"
-        403:
-          description: "Invalid API key. You must be granted a valid key."
-        404:
-          description: "Review not found"
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Review'
+        '400':
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Invalid API key. You must be granted a valid key.
+          content: {}
+        '404':
+          description: Review not found
+          content: {}
       security:
-      - api_key: []
-securityDefinitions:
-  api_key:
-    type: "apiKey"
-    name: "api_key"
-    in: "query"
-definitions:
-  Review:
-    type: "object"
-    properties:
-      nid:
-        type: "integer"
-        format: "int64"
-        example: 13701
-        description: "The review node ID."
-      title:
-        type: "string"
-        example: "Reign in Blood"
-      artistName:
-        type: "string"
-        example: "Slayer"
-      releaseTitle:
-        type: "string"
-        example: "Slayer - Reign in Blood"
-      url:
-        type: "string"
-        example: "https://heavymetal.dk/anmeldelse/slayer-reign-blood"
-      apiRef:
-        type: "string"
-        example: "https://heavymetal.dk/api/v1/reviews/13701?api_key=[API_KEY]"
-      release:
-        type: "object"
-      rating:
-        type: "integer"
-        format: "int64"
-        example: 10
-      tagline:
-        type: "string"
-        example: "Reign In Blood er en milepæl indenfor metal"
-      summary:
-        type: "string"
-        example: "<p>Reign In Blood er en milepæl indenfor metal</p>"
-      bodyHtml:
-        type: "string"
-        example: "<p>Tom Arayas åbningsskrig i intronummeret Angel Of Death, er muligvis den ondeste lyd [...]</p>"
-        description: "The full HTML review text."
-      youtubeEmbedCode:
-        type: "string"
-        example: "wDk6fvkEp2k"
-      dates:
-        $ref: "#/definitions/Dates"
-      author:
-        $ref: "#/definitions/Author"
-      meta:
-        type: "object"
-        properties:
-          classic:
-            type: "boolean"
-            example: false
-            description: "If true, the review has been tagged as a classic masterpiece"
-          detektoren:
-            type: "boolean"
-            example: false
-            description: "If true, the review has been tagged as a Detektoren review and should show up in the Detektoren list."
-      genres:
-        type: array
-        items:
-          $ref: "#/definitions/Genre"
-  Genre:
-    type: "object"
-    properties:
-      tid:
-        type: "integer"
-        format: "int64"
-        example: 1703
-        description: "Genre term ID"
-      created:
-        type: "string"
-        example: "Thrash metal"
-      url:
-        type: "string"
-        example: "https://heavymetal.dk/genre/thrash-metal"
-  Dates:
-    type: "object"
-    properties:
-      created:
-        type: "string"
-        example: "2010-01-08T21:45:07+01:00"
-        description: "Date of creation. ISO 8601 date format."
-      changed:
-        type: "string"
-        example: "2018-03-23T16:58:42+01:00"
-        description: "Last updated time. ISO 8601 date format."
-      publishedAt:
-        type: "string"
-        example: "2010-11-26T16:21:00+01:00"
-        description: "Date the resource was published online. ISO 8601 date format."
-  Author:
-    type: "object"
-    properties:
-      uid:
-        type: "integer"
-        format: "int64"
-        example: 1
-        description: "User ID"
-      name:
-        type: "string"
-        example: "John Doe"
-      url:
-        type: "string"
-        example: "https://heavymetal.dk/users/asmodeus"
-  Error:
-    type: "object"
-    properties:
-      errors:
-        type: "array"
-        items:
-          type: "object"
+        - api_key: []
+components:
+  schemas:
+    Dates:
+      type: object
+      properties:
+        created:
+          type: string
+          description: Date of creation. ISO 8601 date format.
+          example: '2010-01-08T20:45:07.000Z'
+        changed:
+          type: string
+          description: Last updated time. ISO 8601 date format.
+          example: '2018-03-23T15:58:42.000Z'
+        publishedAt:
+          type: string
+          description: Date the resource was published online. ISO 8601 date format.
+          example: '2010-11-26T15:21:00.000Z'
+    Author:
+      type: object
+      properties:
+        uid:
+          type: integer
+          description: User ID
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: John Doe
+        url:
+          type: string
+          example: 'https://heavymetal.dk/users/asmodeus'
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+                description: Numeric error code
+                format: int64
+                example: 1
+                default: 1
+                enum:
+                  - 1
+                  - 2
+                  - 3
+                  - 4
+                  - 5
+                  - 6
+              message:
+                type: string
+                description: Human readable text message explaining the error.
+                example: >-
+                  Invalid parameters. Your request is missing a required
+                  parameter.
+    Review:
+      type: object
+      properties:
+        nid:
+          type: integer
+          description: The review node ID.
+          format: int64
+          example: 13701
+        title:
+          type: string
+          example: Reign in Blood
+        artistName:
+          type: string
+          example: Slayer
+        releaseTitle:
+          type: string
+          example: Slayer - Reign in Blood
+        url:
+          type: string
+          example: 'https://heavymetal.dk/anmeldelse/slayer-reign-blood'
+        apiRef:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/reviews/13701?api_key=[API_KEY]'
+        release:
+          $ref: '#/components/schemas/Release'
+        rating:
+          type: integer
+          format: int64
+          example: 10
+        tagline:
+          type: string
+          nullable: true
+          example: Reign In Blood er en milepæl indenfor metal
+        summary:
+          type: string
+          example: <p>Reign In Blood er en milepæl indenfor metal</p>
+        bodyHtml:
+          type: string
+          description: The full HTML review text.
+          example: >-
+            <p>Tom Arayas åbningsskrig i intronummeret Angel Of Death, er
+            muligvis den ondeste lyd [...]</p>
+        youtubeEmbedCode:
+          type: string
+          example: wDk6fvkEp2k
+        dates:
+          $ref: '#/components/schemas/Dates'
+        author:
+          $ref: '#/components/schemas/Author'
+        meta:
+          type: object
           properties:
-            code:
-              type: "integer"
-              format: "int64"
-              enum:
-              - 1
-              - 2
-              - 3
-              - 4
-              - 5
-              - 6
-              default: 1
-              example: 1
-              description: "Numeric error code"
-            message:
-              type: "string"
-              example: "Invalid parameters. Your request is missing a required parameter."
-              description: "Human readable text message explaining the error."
+            classic:
+              type: boolean
+              description: 'If true, the review has been tagged as a classic masterpiece'
+              example: false
+            detektoren:
+              type: boolean
+              description: >-
+                If true, the review has been tagged as a Detektoren review and
+                should show up in the Detektoren list.
+              example: false
+        genres:
+          type: array
+          items:
+            $ref: '#/components/schemas/Genre'
+    Genre:
+      type: object
+      properties:
+        tid:
+          type: integer
+          description: Genre term ID
+          format: int64
+          example: 1703
+        created:
+          type: string
+          example: Thrash metal
+        url:
+          type: string
+          example: 'https://heavymetal.dk/genre/thrash-metal'
+    Release:
+      type: object
+      properties:
+        nid:
+          type: integer
+          description: The release node ID.
+          format: int64
+          example: 8224
+        title:
+          type: string
+          example: Slayer - Reign in Blood
+        releaseTitle:
+          type: string
+          example: Reign in Blood
+        releaseType:
+          type: string
+          default: Album
+          enum:
+            - Album
+            - EP
+            - Demo
+            - DVD
+            - Live-album
+            - Single
+            - Opsamling
+        releaseDate:
+          type: string
+          description: Release date. ISO 8601 date format.
+          example: '1986-10-06T23:00:00.000Z'
+        artist:
+          type: object
+          properties: {}
+        label:
+          type: object
+          properties: {}
+        images:
+          type: object
+          properties:
+            large:
+              type: string
+              description: URL to large JPEG image of release.
+              example: >-
+                https://heavymetal.dk/sites/default/files/styles/review/public/slayer-reign-in-blood.jpg?itok=jBJbXYlx
+            thumb:
+              type: string
+              description: URL to thumbnail JPEG image of release.
+              example: >-
+                https://heavymetal.dk/sites/default/files/styles/review_thumbnail/public/slayer-reign-in-blood.jpg?itok=E4UsJ5mW
+        runningTime:
+          type: string
+          nullable: true
+          description: 'Album running time in the form MM:TT'
+          example: '28:25'
+        tracks:
+          type: integer
+          nullable: true
+          description: Number of tracks on the album.
+          format: int64
+          example: 10
+        tracklist:
+          type: array
+          nullable: true
+          items:
+            type: string
+          example: [
+            "Angel of Death",
+            "Piece by Piece",
+            "Necrophobic",
+            "Altar of Sacrifice",
+            "Jesus Saves",
+            "Criminally Insane",
+            "Reborn",
+            "Epidemic",
+            "Postmortem",
+            "Raining Blood"
+            ]
+  securitySchemes:
+    api_key:
+      type: apiKey
+      name: api_key
+      in: query
