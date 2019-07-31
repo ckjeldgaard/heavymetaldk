@@ -11,6 +11,9 @@ function api_permission() {
     'administer rest api' => array(
       'title' => t('Administer REST API'),
     ),
+    'view swagger ui' => array(
+      'title' => t('View Swagger UI'),
+    ),
   );
 }
 

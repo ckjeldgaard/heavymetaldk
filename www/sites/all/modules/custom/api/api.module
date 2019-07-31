@@ -16,12 +16,12 @@ function api_menu() {
 
   $items["api/" . API_VERSION . "/swagger"] = array(
     'page callback' => '_api_swagger_ui',
-    'access arguments' => array('administer rest api'),
+    'access arguments' => array('view swagger ui'),
     'type' => MENU_CALLBACK,
   );
   $items["api/" . API_VERSION . "/openapi.yaml"] = array(
     'page callback' => '_api_openapi',
-    'access arguments' => array('administer rest api'),
+    'access arguments' => array('view swagger ui'),
     'type' => MENU_CALLBACK,
   );
 
