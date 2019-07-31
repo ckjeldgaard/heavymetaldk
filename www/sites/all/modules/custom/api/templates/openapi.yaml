@@ -13,7 +13,7 @@ tags:
   - name: review
     description: Album review
     externalDocs:
-      description: Browse
+      description: Browse on website
       url: 'https://heavymetal.dk.dk/anmeldelser'
 paths:
   '/reviews':
@@ -21,6 +21,7 @@ paths:
       tags:
         - review
       summary: Get a list of reviews
+      description: Returns a list of album reviews in descending order by date of publication. The default number of reviews returned is 25. Next-, prev-, first- and last-links are provided in the Link-response header to make it possible to query next and previous items or create a paging effect.
       parameters:
         - name: offset
           in: query
