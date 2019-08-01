@@ -20,13 +20,23 @@ tags:
     externalDocs:
       description: Browse on website
       url: 'https://heavymetal.dk.dk/koncertanmeldelser'
+  - name: interview
+    description: Interview
+    externalDocs:
+      description: Browse on website
+      url: 'https://heavymetal.dk.dk/interviews'
+  - name: news
+    description: News
+    externalDocs:
+      description: Browse on website
+      url: 'https://heavymetal.dk.dk/nyheder'
 paths:
   '/reviews':
     get:
       tags:
         - review
       summary: Get a list of reviews
-      description: Returns a list of album reviews in descending order by date of publication. The default number of reviews returned is 25. Next-, prev-, first- and last-links are provided in the Link-response header to make it possible to query next and previous items or create a paging effect.
+      description: Returns a list of album reviews in descending order by date of publication. The default number of reviews returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
       parameters:
         - name: offset
           in: query
@@ -106,6 +116,53 @@ paths:
       security:
         - api_key: []
         - basicAuth: []
+  '/concert_reviews':
+    get:
+      tags:
+        - concert_review
+      summary: Get a list of concert reviews
+      description: Returns a list of concert reviews in descending order by date of publication. The default number of concert reviews returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
+      parameters:
+        - name: offset
+          in: query
+          description: The ranking number of the first concert review returned
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: Number of concert reviews returned in one request
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 25
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConcertReview'
+        '400':
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Invalid API key. You must be granted a valid key.
+          content: {}
+      security:
+        - api_key: []
+        - basicAuth: []
   '/concert_reviews/{nodeId}':
     get:
       tags:
@@ -129,6 +186,134 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/ConcertReview'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/interviews':
+    get:
+      tags:
+        - interview
+      summary: Get a list of interviews
+      description: Returns a list of interviews in descending order by date of publication. The default number of interviews returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
+      parameters:
+        - name: offset
+          in: query
+          description: The ranking number of the first interview returned
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: Number of interviews returned in one request
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 25
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ConcertReview'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/interviews/{nodeId}':
+    get:
+      tags:
+        - interview
+      summary: Get a single interview
+      parameters:
+        - name: nodeId
+          in: path
+          description: Node ID of interview to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Interview'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/news':
+    get:
+      tags:
+        - news
+      summary: Get a list of news
+      description: Returns a list of news in descending order by date of publication. The default number of news returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
+      parameters:
+        - name: offset
+          in: query
+          description: The ranking number of the first news story returned
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: Number of news returned in one request
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 25
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/News'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/news/{nodeId}':
+    get:
+      tags:
+        - news
+      summary: Get a single news story
+      parameters:
+        - name: nodeId
+          in: path
+          description: Node ID of news story to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/News'
       security:
         - api_key: []
         - basicAuth: []
@@ -326,64 +511,12 @@ components:
             headlinerArtists:
               type: array
               items:
-                type: object
-                properties: 
-                  nid:
-                    type: integer
-                    description: Artist node ID.
-                    format: int64
-                    example: 180
-                  title:
-                    type: string
-                    example: Slayer
-                    description: Artist name
-                  url:
-                    type: string
-                    example: 'https://heavymetal.dk/artist/slayer'
-                    description: Artist URL
-                  apiHref:
-                    type: string
-                    example: 'https://heavymetal.dk/api/v1/artists/180'
-                  description:
-                    type: string
-                    nullable: true
-                    example: null
-                    description: Artist HTML description text
-                  countryIso:
-                    type: string
-                    example: US
-                    description: 'ISO 3166-1 alpha-2 two-letter country code.'
+                $ref: '#/components/schemas/ArtistShort'
             supportArtists:
               type: array
               nullable: true
               items:
-                type: object
-                properties: 
-                  nid:
-                    type: integer
-                    description: Artist node ID.
-                    format: int64
-                    example: 676
-                  title:
-                    type: string
-                    example: Lamb Of God
-                    description: Artist name
-                  url:
-                    type: string
-                    example: 'https://heavymetal.dk/artist/lamb'
-                    description: Artist URL
-                  apiHref:
-                    type: string
-                    example: 'https://heavymetal.dk/api/v1/artists/676'
-                  description:
-                    type: string
-                    nullable: true
-                    example: null
-                    description: Artist HTML description text
-                  countryIso:
-                    type: string
-                    example: US
-                    description: 'ISO 3166-1 alpha-2 two-letter country code.'
+                $ref: '#/components/schemas/ArtistShort'
         rating:
           type: integer
           nullable: true
@@ -505,6 +638,133 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Genre'
+    News:
+      type: object
+      properties:
+        nid:
+          type: integer
+          description: The news node ID.
+          format: int64
+          example: 35502
+        title:
+          type: string
+          example: 'Slayer udgiver musikvideo: Repentless'
+        url:
+          type: string
+          example: 'https://heavymetal.dk/nyhed/slayer-udgiver-musikvideo-repentless'
+          description: News entry URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/news/26341'
+        primaryImage:
+          type: string
+          example: 'https://heavymetal.dk/sites/default/files/styles/top_image/public/skaermbillede_2015-06-19_18.18.29.png?itok=VW3bI8f9'
+        summary:
+          type: string
+          nullable: true
+        bodyHtml:
+          type: string
+          description: The full HTML interview text.
+          example: '<p>Slayer har netop udgivet titelnummeret for thrashbandets 11. album - og det lyder lovende. [...]</p>'
+        artists:
+          type: array
+          nullable: true
+          description: Reference to artists mentioned in the news story.
+          items:
+            $ref: '#/components/schemas/ArtistShort'
+        youtubeEmbedCode:
+          type: string
+          example: uivxr3O6rSE
+        source:
+          type: object
+          properties:
+            title:
+              type: string
+              nullable: true
+              description: Name of the source
+            url:
+              type: string
+              nullable: true
+              description: URL to the source website
+        dates:
+          $ref: '#/components/schemas/Dates'
+        author:
+          $ref: '#/components/schemas/Author'
+    Interview:
+      type: object
+      properties:
+        nid:
+          type: integer
+          description: The interview node ID.
+          format: int64
+          example: 35502
+        title:
+          type: string
+          example: Interview med Slayer
+        url:
+          type: string
+          example: 'https://heavymetal.dk/interview/interview-slayer'
+          description: Interview URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/interviews/35502'
+        primaryImage:
+          type: string
+          example: 'https://heavymetal.dk/sites/default/files/styles/top_image/public/aphy_0.jpg?itok=VFsEgDWM'
+        summary:
+          type: string
+          nullable: true
+          example: <p>I forbindelse med deres kommende album, fik vi os en lille snak med Slayer!</p>
+        bodyHtml:
+          type: string
+          description: The full HTML interview text.
+          example: '<h2>Hvad gør Slayer til Slayer?</h2> [...]'
+        artist:
+          $ref: '#/components/schemas/ArtistShort'
+        youtubeEmbedCode:
+          type: string
+          example: wDk6fvkEp2k
+        dates:
+          $ref: '#/components/schemas/Dates'
+        author:
+          $ref: '#/components/schemas/Author'
+        meta:
+          type: object
+          properties:
+            detektoren:
+              type: boolean
+              example: false
+              description: >-
+                If true, the interview has been tagged as a Detektoren interview and
+                should show up in the Detektoren interview list.
+    ArtistShort:
+      type: object
+      properties: 
+        nid:
+          type: integer
+          description: Artist node ID.
+          format: int64
+          example: 180
+        title:
+          type: string
+          example: Slayer
+          description: Artist name
+        url:
+          type: string
+          example: 'https://heavymetal.dk/artist/slayer'
+          description: Artist URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/artists/180'
+        description:
+          type: string
+          nullable: true
+          example: null
+          description: Artist HTML description text
+        countryIso:
+          type: string
+          example: US
+          description: 'ISO 3166-1 alpha-2 two-letter country code.'
     Genre:
       type: object
       properties:
@@ -571,33 +831,7 @@ components:
           description: Release date. ISO 8601 date format.
           example: '1986-10-06T23:00:00.000Z'
         artist:
-          type: object
-          properties: 
-            nid:
-              type: integer
-              description: Artist node ID.
-              format: int64
-              example: 180
-            title:
-              type: string
-              example: Slayer
-              description: Artist name
-            url:
-              type: string
-              example: 'https://heavymetal.dk/artist/slayer'
-              description: Artist URL
-            apiHref:
-              type: string
-              example: 'https://heavymetal.dk/api/v1/artists/180'
-            description:
-              type: string
-              nullable: true
-              example: null
-              description: Artist HTML description text
-            countryIso:
-              type: string
-              example: US
-              description: 'ISO 3166-1 alpha-2 two-letter country code.'
+          $ref: '#/components/schemas/ArtistShort'
         label:
           $ref: '#/components/schemas/Label'
         images:
