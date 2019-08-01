@@ -2,8 +2,9 @@ openapi: 3.0.1
 info:
   title: Heavymetal.dk API
   description: >-
-    This is the official Heavymetal.dk REST API. In order to use the API, you
-    must be granted an access key available upon request.
+    This is the official Heavymetal.dk REST API.
+    Access to the endpoints are performed through Basic HTTP access authentication. User credentiels are available only upon request.
+    Authorization through an API key is still possible but deprecated.
   contact:
     url: 'https://heavymetal.dk/contact'
   version: '1.0'
