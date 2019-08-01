@@ -30,6 +30,16 @@ tags:
     externalDocs:
       description: Browse on website
       url: 'https://heavymetal.dk.dk/nyheder'
+  - name: reportage
+    description: Reportage
+    externalDocs:
+      description: Browse on website
+      url: 'https://heavymetal.dk.dk/reportager'
+  - name: artist
+    description: Artist
+    externalDocs:
+      description: Browse on website
+      url: 'https://heavymetal.dk.dk/bands'
 paths:
   '/reviews':
     get:
@@ -317,6 +327,96 @@ paths:
       security:
         - api_key: []
         - basicAuth: []
+  '/reportages':
+    get:
+      tags:
+        - reportage
+      summary: Get a list of reportages
+      description: Returns a list of reportages in descending order by date of publication. The default number of reportages returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
+      parameters:
+        - name: offset
+          in: query
+          description: The ranking number of the first reportage returned
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: Number of reportages returned in one request
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 25
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reportage'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/reportages/{nodeId}':
+    get:
+      tags:
+        - reportage
+      summary: Get a single reportage
+      parameters:
+        - name: nodeId
+          in: path
+          description: Node ID of reportage to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Reportage'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/artists/{nodeId}':
+    get:
+      tags:
+        - artist
+      summary: Get a single artist
+      parameters:
+        - name: nodeId
+          in: path
+          description: Node ID of artist to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Artist'
+      security:
+        - api_key: []
+        - basicAuth: []
 components:
   schemas:
     Dates:
@@ -425,27 +525,9 @@ components:
                 example: >-
                   Invalid parameters. Your request is missing a required
                   parameter.
-    ConcertReview:
+    Concert:
       type: object
       properties:
-        nid:
-          type: integer
-          description: The concert review node ID.
-          format: int64
-          example: 13701
-        title:
-          type: string
-          example: Slayer - Royal Arena - 3. december 2018
-        url:
-          type: string
-          example: 'https://heavymetal.dk/koncertanmeldelse/slayer-royal-arena-3-december-2018'
-          description: Concert review URL
-        apiHref:
-          type: string
-          example: 'https://heavymetal.dk/api/v1/concert_reviews/34358'
-        concert:
-          type: object
-          properties:
             nid:
               type: integer
               description: The concert node ID.
@@ -517,6 +599,26 @@ components:
               nullable: true
               items:
                 $ref: '#/components/schemas/ArtistShort'
+    ConcertReview:
+      type: object
+      properties:
+        nid:
+          type: integer
+          description: The concert review node ID.
+          format: int64
+          example: 13701
+        title:
+          type: string
+          example: Slayer - Royal Arena - 3. december 2018
+        url:
+          type: string
+          example: 'https://heavymetal.dk/koncertanmeldelse/slayer-royal-arena-3-december-2018'
+          description: Concert review URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/concert_reviews/34358'
+        concert:
+          $ref: '#/components/schemas/Concert'
         rating:
           type: integer
           nullable: true
@@ -598,6 +700,7 @@ components:
           $ref: '#/components/schemas/Release'
         rating:
           type: integer
+          nullable: true
           format: int64
           example: 10
         tagline:
@@ -765,6 +868,100 @@ components:
           type: string
           example: US
           description: 'ISO 3166-1 alpha-2 two-letter country code.'
+    Artist:
+      type: object
+      properties: 
+        nid:
+          type: integer
+          description: Artist node ID.
+          format: int64
+          example: 180
+        title:
+          type: string
+          example: Slayer
+          description: Artist name
+        url:
+          type: string
+          example: 'https://heavymetal.dk/artist/slayer'
+          description: Artist URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/artists/180'
+        descriptionHtml:
+          type: string
+          nullable: true
+          example: null
+          description: Artist HTML description text
+        logoImage:
+          type: string
+          nullable: true
+          description: URL to artist JPEG logo
+          example: 'https://heavymetal.dk/sites/default/files/styles/bandlogo/public/slayer.jpeg?itok=pSQE25jo'
+        countryIso:
+          type: string
+          example: US
+          description: 'ISO 3166-1 alpha-2 two-letter country code.'
+        websiteLink:
+          type: string
+          nullable: true
+          description: URL to artist's website
+          example: http://www.slayer.net/
+        genres:
+          type: array
+          nullable: true
+          maxItems: 2
+          items:
+            $ref: '#/components/schemas/Genre'
+        relatedArtists:
+          type: array
+          nullable: true
+          maxItems: 5
+          items:
+            $ref: '#/components/schemas/ArtistShort'
+        reviews:
+          type: array
+          description: 'Album reviews for this artist'
+          items:
+            type: object
+            properties:
+              nid:
+                type: integer
+                description: Review node ID.
+                format: int64
+                example: 26746
+              title:
+                type: string
+                example: Slayer - Repentless
+                description: Review title
+              url:
+                type: string
+                example: 'https://heavymetal.dk/anmeldelse/slayer-repentless'
+                description: Review URL
+              apiHref:
+                type: string
+                example: 'https://heavymetal.dk/api/v1/reviews/26746'
+        interviews:
+          type: array
+          description: 'Interviews for this artist'
+          items:
+            type: object
+            properties:
+              nid:
+                type: integer
+                description: Interview node ID.
+                format: int64
+                example: 267461
+              title:
+                type: string
+                example: Interview med Slayer
+                description: Review title
+              url:
+                type: string
+                example: 'https://heavymetal.dk/interview/slayer'
+                description: Review URL
+              apiHref:
+                type: string
+                example: 'https://heavymetal.dk/api/v1/interviews/26746'
     Genre:
       type: object
       properties:
@@ -801,6 +998,92 @@ components:
           type: string
           example: 'http://www.universalrecords.com'
           description: Label website URL
+    Reportage:
+      type: object
+      properties: 
+        nid:
+          type: integer
+          description: Reportage node ID.
+          format: int64
+          example: 180
+        title:
+          type: string
+          example: Copenhell 2019
+          description: Repotage title
+        url:
+          type: string
+          example: 'https://heavymetal.dk/reportage/copenhell-2019'
+          description: Repotage URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/reportages/35626'
+        primaryImage:
+          type: string
+          example: 'https://heavymetal.dk/sites/default/files/styles/top_image/public/cph_1182.jpg?itok=j3KcTtbd'
+        tagline:
+          type: string
+          nullable: true
+          example: Velkommen til helvede
+        summary:
+          type: string
+          nullable: true
+          example: <p>10 år i helvede</p>
+        bodyHtml:
+          type: string
+          description: The full HTML reportage text appearing before review texts.
+          example: '<p>Copenhell fejrede sit velfortjente tiårsjubilæum i år [...] </p>'
+        tabs:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                example: Onsdag
+                description: The title of the tab
+              machineName:
+                type: string
+                example: onsdag
+                description: An URL- and machine safe lower-case version of the tab title.
+              reviews:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    artist:
+                      $ref: '#/components/schemas/ArtistShort'
+                    reviewTextHtml:
+                      type: string
+                      example: '<h2>Ingen skyer over Gamle Sjælland [...]</h2>'
+                      description: 'The HTML review text for this concert'
+                    rating:
+                      type: integer
+                      nullable: true
+                      format: int64
+                      example: 7
+                    image:
+                      type: string
+                      nullable: true
+                      example: 'https://heavymetal.dk/sites/default/files/styles/story/public/eagles.jpg?itok=BLgxoQYY'
+                      description: URL to a JPEG image from the concert.
+                    author:
+                      $ref: '#/components/schemas/Author'
+                    stage:
+                      type: string
+                      nullable: true
+                      example: 'Pandæmonium'
+                      description: Optional name of the stage where the concert is performed.
+                    time:
+                      type: string
+                      nullable: true
+                      example: '2019-06-19T17:00:00+02:00'
+                      description: Optional date of the concert. ISO 8601 date format.
+        concert:
+          $ref: '#/components/schemas/Concert'
+        dates:
+          $ref: '#/components/schemas/Dates'
+        author:
+          $ref: '#/components/schemas/Author'
     Release:
       type: object
       properties:
