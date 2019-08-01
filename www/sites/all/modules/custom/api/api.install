@@ -42,5 +42,44 @@ function api_schema() {
       'api_key' => array('api_key'),
     ),
   );
+  $schema['api_users'] = array(
+    'description' => 'API users for the Heavymetal.dk REST API',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Primary identifier',
+        'type' => 'serial',
+        'not null' => TRUE,
+      ),
+      'username' => array(
+        'description' => 'Name of the API user',
+        'type' => 'varchar',
+        'length' => '32',
+        'not null' => TRUE,
+      ),
+      'password' => array(
+        'description' => 'Hashed password',
+        'type' => 'varchar',
+        'length' => '256',
+        'not null' => TRUE,
+      ),
+      'active' => array(
+        'description' => 'Whether the API user is currently active.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'created' => array(
+        'description' => 'When the API user was created.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    'indexes' => array(
+      'username' => array('username'),
+    ),
+  );
+  
   return $schema;
 }

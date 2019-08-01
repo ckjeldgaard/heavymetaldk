@@ -17,6 +17,144 @@ function api_permission() {
   );
 }
 
+function _api_auth_list() {
+  $header = array(
+    t('Username'),
+    t('Password'),
+    t('Active'),
+    t('Created'),
+    t('Actions')
+  );
+  $results = db_query("SELECT * FROM {api_users} ORDER BY username");
+  $rows = array();
+  foreach($results as $row) {
+    $rows[] = array(
+      $row->username,
+      "*****",
+      ($row->active) ? t('Yes') : t('No'),
+      format_date($row->created, 'fulldate'),
+      l(t('edit'), "admin/config/api/edit_user/{$row->id}") . '&emsp;' .
+      l(t('delete'), "admin/config/api/delete_user/{$row->id}")
+    );
+  }
+
+  $form = drupal_get_form('_new_user_form');
+
+  return theme('table', array('header' => $header, 'rows' => $rows)) . render($form);
+}
+
+/**
+ * Defines a button form
+ */
+function _new_user_form($form, &$form_state) {
+  $form = array();
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Add new user'),
+  );
+  return $form;
+}
+
+function _new_user_form_submit($form, &$form_state) {
+  drupal_goto('admin/config/api/add_user');
+}
+
+function _add_user_form() {
+  $form = array();
+  $form['#id'] = 'add-api-key-form';
+
+  $form['username'] = array(
+    '#type' => 'textfield',
+    '#title' => t('API username'),
+    '#description' => t('A name to identify the user. E.g. Android app'),
+    '#maxlength' => 32,
+    '#required' => TRUE,
+  );
+  $form['password'] = array(
+    '#type' => 'password',
+    '#title' => t('Password'),
+    '#maxlength' => 256,
+    '#required' => TRUE,
+  );
+  $form['active'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Active'),
+    '#default_value' => 1,
+  );
+  $form['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Save'),
+  ];
+
+  return $form;
+}
+
+function _add_user_form_submit($form, &$form_state) {
+  $hash = password_hash($form_state['values']['password'], PASSWORD_DEFAULT);
+  try {
+    db_insert('api_users')
+      ->fields(array(
+        'username' => $form_state['values']['username'],
+        'password' => $hash,
+        'active' => $form_state['values']['active'],
+        'created' => time(),
+      ))->execute();
+  } catch (Exception $e) {
+  }
+  drupal_set_message(t('Successfully added new user.'));
+  drupal_goto('admin/config/api/auth');
+}
+
+function _edit_user_form($form ,&$form_state, $id) {
+  $api_user = _get_api_user($id);
+
+  $form = _add_user_form();
+  $form['#id'] = 'edit-user-form';
+  $form['username']['#default_value'] = $api_user['username'];
+  unset($form['password']);
+  $form['active']['#default_value'] = $api_user['active'];
+
+  return $form;
+}
+
+function _edit_user_form_submit($form, &$form_state) {
+  db_update('api_users')
+    ->fields(array(
+      'username' => $form_state['values']['username'],
+      'active' => $form_state['values']['active'],
+    ))
+    ->condition('id', arg(4))
+    ->execute();
+  drupal_set_message(t('Successfully updated user.'));
+  drupal_goto('admin/config/api/auth');
+}
+
+function _delete_user_form($form ,&$form_state, $id) {
+  $api_user = _get_api_user($id);
+  $form['_api_user'] = array('#type' => 'value', '#value' => $id);
+
+  return confirm_form(
+    $form,
+    t('Are you sure you want to delete %title?', array('%title' => $api_user['username'])),
+    'admin/config/api/auth',
+    t('This action cannot be undone.'),
+    t('Delete'),
+    t('Cancel')
+  );
+}
+
+function _delete_user_form_submit($form ,&$form_state) {
+  $num_deleted = db_delete('api_users')
+    ->condition('id', $form_state['values']['_api_user'])
+    ->execute();
+  drupal_set_message(t('Successfully deleted user.'));
+  drupal_goto('admin/config/api/auth');
+}
+
+function _get_api_user($id) {
+  return db_query("SELECT * FROM api_users WHERE id = :id LIMIT 1", array(':id' => $id))->fetchAssoc();
+}
+
 function _api_keys_list() {
   $header = array(
     t('API name'),

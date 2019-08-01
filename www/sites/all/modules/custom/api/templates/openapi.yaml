@@ -67,6 +67,7 @@ paths:
           content: {}
       security:
         - api_key: []
+        - basicAuth: []
   '/reviews/{nodeId}':
     get:
       tags:
@@ -104,6 +105,7 @@ paths:
           content: {}
       security:
         - api_key: []
+        - basicAuth: []
   '/concert_reviews/{nodeId}':
     get:
       tags:
@@ -129,6 +131,7 @@ paths:
                     $ref: '#/components/schemas/ConcertReview'
       security:
         - api_key: []
+        - basicAuth: []
 components:
   schemas:
     Dates:
@@ -160,6 +163,56 @@ components:
         url:
           type: string
           example: 'https://heavymetal.dk/users/asmodeus'
+    Venue:
+      type: object
+      properties:
+        tid:
+          type: integer
+          description: Venue term ID
+          format: int64
+          example: 1909
+        title:
+          type: string
+          example: Royal Arena
+        url:
+          type: string
+          example: 'https://heavymetal.dk/spillested/royal-arena'
+        address:
+          type: object
+          properties:
+            streetAddress:
+              type: string
+              example: 'Hannemanns Allé 18'
+            postalCode:
+              type: string
+              example: '2300'
+            city:
+              type: string
+              example: 'København S'
+            countryIso:
+              type: string
+              example: 'DK'
+              description: 'ISO 3166-1 alpha-2 two-letter country code.'
+        province:
+          type: string
+          example: 'koebenhavn'
+          description: 'Lower-case URL-safe name of Danish province where the venue is located.'
+          enum:
+            - koebenhavn
+            - nordsjaelland
+            - bornholm
+            - sjaelland
+            - fyn
+            - syd-soenderjylland
+            - vestjylland
+            - midtjylland
+            - nordjylland
+            - udlandet
+        website:
+          type: string
+          nullable: true
+          example: null
+          description: 'Venue website URL'
     Error:
       type: object
       properties:
@@ -204,9 +257,133 @@ components:
           description: Concert review URL
         apiHref:
           type: string
-          example: 'https://heavymetal.dk/api/v1/concert_reviews/34358?api_key=[API_KEY]'
+          example: 'https://heavymetal.dk/api/v1/concert_reviews/34358'
         concert:
           type: object
+          properties:
+            nid:
+              type: integer
+              description: The concert node ID.
+              format: int64
+              example: 33019
+            title:
+              type: string
+              example: Slayer - Royal Arena - 3. december 2018
+            venue:
+              $ref: '#/components/schemas/Venue'
+            cancelled:
+              type: boolean
+              example: false
+              description: 'True if the event is cancelled, false otherwise'
+            eventDate:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                  example: '2018-12-03T00:00:00+01:00'
+                  description: 'Event start date. ISO 8601 date format.'
+                endDate:
+                  type: string
+                  example: '2018-12-03T00:00:00+01:00'
+                  description: 'Event end date. ISO 8601 date format.'
+            festival:
+              type: object
+              properties:
+                isFestival:
+                  type: boolean
+                  example: false
+                  description: 'True if the event is a festival, false otherwise'
+                festivalName:
+                  type: string
+                  nullable: true
+                  example: null
+                  description: 'Optional festival name'
+            meta:
+              type: object
+              description: Optional meta data and information about the concert.
+              properties:
+                startTime:
+                  type: string
+                  nullable: true
+                  example: '20:00'
+                  description: 'Optional concert start time'
+                ticketPrice:
+                  type: integer
+                  nullable: true
+                  description: Optional concert ticket price in DKK
+                  format: int64
+                  example: 250
+                buyLink:
+                  type: string
+                  nullable: true
+                  example: 'https://www.ticketmaster.dk/event/RYA0312?language=da-dk&brand=dk_livenation'
+                  description: 'Optional URL to ticket seller website.'
+                facebookEventUrl:
+                  type: string
+                  nullable: true
+                  example: 'https://www.facebook.com/events/388074588341446/?ti=icl'
+                  description: 'Optional URL to event on Facebook'
+            headlinerArtists:
+              type: array
+              items:
+                type: object
+                properties: 
+                  nid:
+                    type: integer
+                    description: Artist node ID.
+                    format: int64
+                    example: 180
+                  title:
+                    type: string
+                    example: Slayer
+                    description: Artist name
+                  url:
+                    type: string
+                    example: 'https://heavymetal.dk/artist/slayer'
+                    description: Artist URL
+                  apiHref:
+                    type: string
+                    example: 'https://heavymetal.dk/api/v1/artists/180'
+                  description:
+                    type: string
+                    nullable: true
+                    example: null
+                    description: Artist HTML description text
+                  countryIso:
+                    type: string
+                    example: US
+                    description: 'ISO 3166-1 alpha-2 two-letter country code.'
+            supportArtists:
+              type: array
+              nullable: true
+              items:
+                type: object
+                properties: 
+                  nid:
+                    type: integer
+                    description: Artist node ID.
+                    format: int64
+                    example: 676
+                  title:
+                    type: string
+                    example: Lamb Of God
+                    description: Artist name
+                  url:
+                    type: string
+                    example: 'https://heavymetal.dk/artist/lamb'
+                    description: Artist URL
+                  apiHref:
+                    type: string
+                    example: 'https://heavymetal.dk/api/v1/artists/676'
+                  description:
+                    type: string
+                    nullable: true
+                    example: null
+                    description: Artist HTML description text
+                  countryIso:
+                    type: string
+                    example: US
+                    description: 'ISO 3166-1 alpha-2 two-letter country code.'
         rating:
           type: integer
           nullable: true
@@ -253,6 +430,14 @@ components:
           type: string
           nullable: true
           description: Optional conclusion HTML text.
+        primaryImage:
+          type: string
+          nullable: true
+          example: 'https://heavymetal.dk/sites/default/files/styles/story/public/47489919_121133922161589_2866932717809827840_n.jpg?itok=CgVLjhdx'
+        dates:
+          $ref: '#/components/schemas/Dates'
+        author:
+          $ref: '#/components/schemas/Author'
     Review:
       type: object
       properties:
@@ -275,7 +460,7 @@ components:
           example: 'https://heavymetal.dk/anmeldelse/slayer-reign-blood'
         apiRef:
           type: string
-          example: 'https://heavymetal.dk/api/v1/reviews/13701?api_key=[API_KEY]'
+          example: 'https://heavymetal.dk/api/v1/reviews/13701'
         release:
           $ref: '#/components/schemas/Release'
         rating:
@@ -403,7 +588,7 @@ components:
               description: Artist URL
             apiHref:
               type: string
-              example: 'https://heavymetal.dk/api/v1/artists/180?api_key=[API_KEY]'
+              example: 'https://heavymetal.dk/api/v1/artists/180'
             description:
               type: string
               nullable: true
@@ -461,3 +646,6 @@ components:
       type: apiKey
       name: api_key
       in: query
+    basicAuth:
+      type: http
+      scheme: basic

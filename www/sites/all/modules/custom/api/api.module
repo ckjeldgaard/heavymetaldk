@@ -14,11 +14,6 @@ require_once('api.render.inc');
  */
 function api_menu() {
 
-  $items["api/" . API_VERSION . "/swagger"] = array(
-    'page callback' => '_api_swagger_ui',
-    'access arguments' => array('view swagger ui'),
-    'type' => MENU_CALLBACK,
-  );
   $items["api/" . API_VERSION . "/openapi.yaml"] = array(
     'page callback' => '_api_openapi',
     'access arguments' => array('view swagger ui'),
@@ -93,9 +88,31 @@ function api_menu() {
     'title' => t('REST API'),
     'page callback' => '_api_keys_list',
     'access arguments' => array('administer rest api'),
-    'type' => MENU_CALLBACK,
     'file' => 'api.admin.inc',
   );
+  $items['admin/config/api/keys'] = array(
+    'title' => t('API Keys'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10
+  );
+  $items['admin/config/api/auth'] = array(
+    'title' => t('Auth'),
+    'page callback' => '_api_auth_list',
+    'access arguments' => array('administer rest api'),
+    'file' => 'api.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -9
+  );
+  $items["admin/config/api/doc"] = array(
+    'title' => t('API Documentation'),
+    'description' => t('Swagger UI documentation page for Heavymetal.dk REST API.'),
+    'page callback' => '_api_swagger_ui',
+    'access arguments' => array('view swagger ui'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -8
+  );
+
+  // Admin API key:
   $items['admin/config/api/add_api_key'] = array(
     'title' => 'Add API key',
     'description' => 'Add a new API key.',
@@ -123,7 +140,70 @@ function api_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'api.admin.inc',
   );
+
+  // Admin user:
+  $items['admin/config/api/add_user'] = array(
+    'title' => 'Add API user',
+    'description' => 'Add a new API user.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_add_user_form'),
+    'access arguments' => array('administer rest api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api.admin.inc',
+  );
+  $items['admin/config/api/edit_user/%'] = array(
+    'title' => 'Edit API user',
+    'description' => 'Edit an existing API user.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_edit_user_form', 4),
+    'access arguments' => array('administer rest api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api.admin.inc',
+  );
+  $items['admin/config/api/delete_user/%'] = array(
+    'title' => 'Delete API user',
+    'description' => 'Delete an existing API user.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_delete_user_form', 4),
+    'access arguments' => array('administer rest api'),
+    'type' => MENU_CALLBACK,
+    'file' => 'api.admin.inc',
+  );
   return $items;
+}
+
+function _valid_http_auth() {
+  if (!isset($_SERVER['PHP_AUTH_USER'])) {
+    drupal_add_http_header('WWW-Authenticate', 'Basic realm="Heavymetal.dk API"');
+    drupal_add_http_header('Status', '401 Unauthorized');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 7,
+          "message" => "Authentication information is missing or invalid."
+        )
+      )
+    ));
+    return FALSE;
+  } else {
+
+    $user = db_query("SELECT * FROM api_users WHERE username = :username AND active = :active LIMIT 1", array(':username' => check_plain($_SERVER['PHP_AUTH_USER']), ':active' => 1))->fetchAssoc();
+
+    if (is_array($user) && password_verify($_SERVER['PHP_AUTH_PW'], $user['password'])) {
+      return TRUE;
+    } else {
+      drupal_add_http_header('Status', '401 Unauthorized');
+      drupal_json_output(array(
+        "errors" => array(
+          array(
+            "code" => 7,
+            "message" => "Authentication information is missing or invalid."
+          )
+        )
+      ));
+      return FALSE;
+    }
+  }
 }
 
 function _valid_api_key() {
@@ -196,8 +276,14 @@ function _limit() {
 function _api_concert_reviews() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
-  if (!_valid_api_key()) {
-    drupal_exit();
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
   }
 
   $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
@@ -241,8 +327,14 @@ function _api_concert_reviews() {
 function _api_news() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
-  if (!_valid_api_key()) {
-    drupal_exit();
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
   }
 
   $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
@@ -286,8 +378,14 @@ function _api_news() {
 function _api_reportages() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
-  if (!_valid_api_key()) {
-    drupal_exit();
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
   }
 
   $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
@@ -331,8 +429,14 @@ function _api_reportages() {
 function _api_interviews() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
-  if (!_valid_api_key()) {
-    drupal_exit();
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
   }
 
   $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
@@ -420,8 +524,14 @@ function theme_swagger_ui($swagger_schema) {
 function _api_reviews() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
-  if (!_valid_api_key()) {
-    drupal_exit();
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
   }
 
   $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
@@ -608,8 +718,14 @@ function _api_artist($nid) {
 function _handle_single_node($nid, $type, $render_function) {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
-  if (!_valid_api_key()) {
-    drupal_exit();
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
   }
 
   if (!is_numeric($nid)) {

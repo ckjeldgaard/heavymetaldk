@@ -6,7 +6,7 @@ function _output_concert_review($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/concert_reviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/concert_reviews/' . $node->nid, array('absolute' => TRUE)),
     "concert" => _output_concert($node->field_concert[LANGUAGE_NONE][0]['target_id']),
     "rating" => (isset($node->field_rating[LANGUAGE_NONE][0]['value'])) ? (int) $node->field_rating[LANGUAGE_NONE][0]['value'] : NULL,
     "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
@@ -50,7 +50,7 @@ function _output_review($node, $published_at) {
     "artistName" => $title_parts[0],
     "releaseTitle" => $title_parts[1],
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/reviews/' . $node->nid, array('absolute' => TRUE)),
     "release" => _output_release($node->field_release[LANGUAGE_NONE][0]['target_id']),
     "rating" => (int) $node->field_rating[LANGUAGE_NONE][0]['value'],
     "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
@@ -161,7 +161,7 @@ function _output_interview($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/interviews/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/interviews/' . $node->nid, array('absolute' => TRUE)),
     "primaryImage" => image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]),
     "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
     "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
@@ -196,7 +196,7 @@ function _output_news($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/news/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/news/' . $node->nid, array('absolute' => TRUE)),
     "primaryImage" => (isset($node->field_image[LANGUAGE_NONE][0])) ? image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]) : NULL,
     "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
     "bodyHtml" => (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) ? $node->body[LANGUAGE_NONE][0]['safe_value'] : $node->body[LANGUAGE_NONE][0]['value'],
@@ -271,7 +271,7 @@ function _output_reportage($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/reportages/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/reportages/' . $node->nid, array('absolute' => TRUE)),
     "primaryImage" => (isset($node->field_image[LANGUAGE_NONE][0])) ? image_cache('top_image', $node->field_image[LANGUAGE_NONE][0]) : NULL,
     "tagline" => (isset($node->field_tagline[LANGUAGE_NONE][0]['safe_value'])) ? $node->field_tagline[LANGUAGE_NONE][0]['safe_value'] : $node->field_tagline[LANGUAGE_NONE][0]['value'],
     "summary" => (isset($node->body[LANGUAGE_NONE][0]['safe_summary'])) ? $node->body[LANGUAGE_NONE][0]['safe_summary'] : $node->body[LANGUAGE_NONE][0]['summary'],
@@ -373,7 +373,7 @@ EOT;
     "nid" => (int) $nid,
     "title" => $artist->title,
     "url" => url('node/' . $nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/artists/' . $nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/artists/' . $nid, array('absolute' => TRUE)),
     "description" => $artist->field_description_value,
     "countryIso" => $artist->field_country_iso2,
   );
@@ -461,7 +461,7 @@ function _output_artist_detailed($node, $published_at) {
     "nid" => (int) $node->nid,
     "title" => $node->title,
     "url" => url('node/' . $node->nid, array('absolute' => TRUE)),
-    "apiHref" => url('api/' . API_VERSION . '/artists/' . $node->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+    "apiHref" => url('api/' . API_VERSION . '/artists/' . $node->nid, array('absolute' => TRUE)),
     "descriptionHtml" => $node->field_description[LANGUAGE_NONE][0]['safe_value'],
     "logoImage" => (isset($node->field_logo[LANGUAGE_NONE][0])) ? image_cache('bandlogo', $node->field_logo[LANGUAGE_NONE][0]) : NULL,
     "countryIso" => (isset($node->field_country[LANGUAGE_NONE][0])) ? $node->field_country[LANGUAGE_NONE][0]['iso2'] : NULL,
@@ -497,7 +497,7 @@ EOT;
       "nid" => (int) $row->review_id,
       "title" => $row->title,
       "url" => url('node/' . $row->review_id, array('absolute' => TRUE)),
-      "apiHref" => url('api/' . API_VERSION . '/reviews/' . $row->review_id, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+      "apiHref" => url('api/' . API_VERSION . '/reviews/' . $row->review_id, array('absolute' => TRUE)),
     );
   }
 
@@ -508,7 +508,7 @@ EOT;
       "nid" => (int) $i->nid,
       "title" => $i->title,
       "url" => url('node/' . $i->nid, array('absolute' => TRUE)),
-      "apiHref" => url('api/' . API_VERSION . '/interviews/' . $i->nid, array('absolute' => TRUE, 'query' => array('api_key' => check_plain($_GET['api_key'])))),
+      "apiHref" => url('api/' . API_VERSION . '/interviews/' . $i->nid, array('absolute' => TRUE)),
     );
   }
 
