@@ -15,6 +15,11 @@ tags:
     externalDocs:
       description: Browse on website
       url: 'https://heavymetal.dk.dk/anmeldelser'
+  - name: concert_review
+    description: Concert review
+    externalDocs:
+      description: Browse on website
+      url: 'https://heavymetal.dk.dk/koncertanmeldelser'
 paths:
   '/reviews':
     get:
@@ -99,6 +104,31 @@ paths:
           content: {}
       security:
         - api_key: []
+  '/concert_reviews/{nodeId}':
+    get:
+      tags:
+        - concert_review
+      summary: Get a single concert review
+      parameters:
+        - name: nodeId
+          in: path
+          description: Node ID of concert review to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ConcertReview'
+      security:
+        - api_key: []
 components:
   schemas:
     Dates:
@@ -157,6 +187,72 @@ components:
                 example: >-
                   Invalid parameters. Your request is missing a required
                   parameter.
+    ConcertReview:
+      type: object
+      properties:
+        nid:
+          type: integer
+          description: The concert review node ID.
+          format: int64
+          example: 13701
+        title:
+          type: string
+          example: Slayer - Royal Arena - 3. december 2018
+        url:
+          type: string
+          example: 'https://heavymetal.dk/koncertanmeldelse/slayer-royal-arena-3-december-2018'
+          description: Concert review URL
+        apiHref:
+          type: string
+          example: 'https://heavymetal.dk/api/v1/concert_reviews/34358?api_key=[API_KEY]'
+        concert:
+          type: object
+        rating:
+          type: integer
+          nullable: true
+          description: Optional rating for the entire concert.
+          format: int64
+          example: 7
+        tagline:
+          type: string
+          nullable: true
+          example: Mandag i metallens tegn
+        summary:
+          type: string
+          nullable: true
+          example: <p>Slayer i Royal Arena</p>
+          description: Optional summary HTML text
+        bodyHtml:
+          type: string
+          description: The full HTML review text.
+          example: '<h2>Mødepligt</h2> <p>En mandag aften i starten af december [...]</p>'
+        reviews:
+          type: array
+          items:
+            properties:
+              headline:
+                type: string
+                example: Slayer
+                description: Sub-review headline
+              reviewTextHtml:
+                type: string
+                example: 'h2>Ode til Slayer</h2> <p>Man tager ikke bare [...]</p>'
+                description: The full HTML sub-review text.
+              rating:
+                type: integer
+                nullable: true
+                description: Optional rating for the sub-review.
+                format: int64
+                example: 5
+              image:
+                type: string
+                nullable: true
+                example: 'https://heavymetal.dk/sites/default/files/styles/story/public/47320860_438482733352571_2668822072767021056_n.jpg?itok=Iv-3l2o0'
+                description: Optional image URL
+        conclusionHtml:
+          type: string
+          nullable: true
+          description: Optional conclusion HTML text.
     Review:
       type: object
       properties:
@@ -192,6 +288,7 @@ components:
           example: Reign In Blood er en milepæl indenfor metal
         summary:
           type: string
+          nullable: true
           example: <p>Reign In Blood er en milepæl indenfor metal</p>
         bodyHtml:
           type: string
