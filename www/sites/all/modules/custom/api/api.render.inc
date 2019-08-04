@@ -82,7 +82,24 @@ function _output_review($node, $published_at) {
   return $review;
 }
 
+function _output_concert_node($node, $published_at) {
+  $concert = _output_concert($node->nid);
+
+  $concert["dates"] = array(
+    "created" => date('c', $node->created),
+    "changed" => date('c', $node->changed),
+    "publishedAt" => date('c', $published_at)
+  );
+  $concert["author"] = array(
+    "uid" => (int) $node->uid,
+    "name" => $node->name,
+    "url" => url('user/' . $node->uid, array('absolute' => TRUE)),
+  );
+  return $concert;
+}
+
 function _output_concert($concert_nid) {
+  
   $sql = <<<EOT
   SELECT n.title,
   v.field_venue_tid,
@@ -113,9 +130,11 @@ EOT;
   );
   $rs = db_query($sql, $params)->fetchObject();
 
-  $concert_review = array(
+  $concert = array(
     "nid" => (int) $concert_nid,
     "title" => $rs->title,
+    "url" => url('node/' . $concert_nid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/concerts/' . $concert_nid, array('absolute' => TRUE)),
     "venue" => _output_venue($rs->field_venue_tid),
     "cancelled" => (bool) $rs->field_cancelled_value,
     "eventDate" => array(
@@ -141,7 +160,7 @@ EOT;
   foreach ($rs as $row) {
     $headliners[] = _output_artist($row->field_artists_target_id);
   }
-  $concert_review["headlinerArtists"] = $headliners;
+  $concert["headlinerArtists"] = $headliners;
 
   // Support artists:
   $sql_support = "SELECT a.field_support_artists_target_id FROM field_data_field_support_artists a WHERE a.entity_id = :concert_nid AND a.bundle = :bundle";
@@ -150,9 +169,9 @@ EOT;
   foreach ($rs as $row) {
     $support[] = _output_artist($row->field_support_artists_target_id);
   }
-  $concert_review["supportArtists"] = $support;
+  $concert["supportArtists"] = $support;
 
-  return $concert_review;
+  return $concert;
 }
 
 function _output_interview($node, $published_at) {

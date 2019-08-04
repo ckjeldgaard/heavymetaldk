@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: Heavymetal.dk API
   description: >-
-    This is the official Heavymetal.dk REST API.
+    This is the official documentation for the Heavymetal.dk REST API.
     Access to the endpoints are performed through Basic HTTP access authentication. User credentiels are available only upon request.
     Authorization through an API key is still possible but deprecated.
   contact:
@@ -16,11 +16,8 @@ tags:
     externalDocs:
       description: Browse on website
       url: 'https://heavymetal.dk.dk/anmeldelser'
-  - name: concert_review
-    description: Concert review
-    externalDocs:
-      description: Browse on website
-      url: 'https://heavymetal.dk.dk/koncertanmeldelser'
+  - name: concert
+    description: Concerts and concert reviews
   - name: interview
     description: Interview
     externalDocs:
@@ -130,7 +127,7 @@ paths:
   '/concert_reviews':
     get:
       tags:
-        - concert_review
+        - concert
       summary: Get a list of concert reviews
       description: Returns a list of concert reviews in descending order by date of publication. The default number of concert reviews returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
       parameters:
@@ -177,7 +174,7 @@ paths:
   '/concert_reviews/{nodeId}':
     get:
       tags:
-        - concert_review
+        - concert
       summary: Get a single concert review
       parameters:
         - name: nodeId
@@ -197,6 +194,87 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/ConcertReview'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/concerts':
+    get:
+      tags:
+        - concert
+      summary: Get a list of concerts from the concert calendar
+      description: Returns a list of concerts in descending order by the start date of the events. The default number of concert returned is 25. Next-, prev-, first- and last-links are provided in the `Link-response` header to make it possible to query next and previous items or create a paging effect.
+      parameters:
+        - name: offset
+          in: query
+          description: The ranking number of the first concert returned
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+        - name: limit
+          in: query
+          description: Number of concerts returned in one request
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 25
+        - name: start_time_after
+          in: query
+          description: Optional unix timestamp (no. of seconds after January 1st, 1970) to limit number of concerts returned by event start time.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 0
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Concert'
+        '400':
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Invalid API key. You must be granted a valid key.
+          content: {}
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/concert/{nodeId}':
+    get:
+      tags:
+        - concert
+      summary: Get a single concert
+      parameters:
+        - name: nodeId
+          in: path
+          description: Node ID of concert to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Concert'
       security:
         - api_key: []
         - basicAuth: []
@@ -537,6 +615,13 @@ components:
             title:
               type: string
               example: Slayer - Royal Arena - 3. december 2018
+            url:
+              type: string
+              example: 'https://heavymetal.dk/koncert/slayer-royal-arena-3-december-2018'
+              description: Concert review URL
+            apiHref:
+              type: string
+              example: 'https://heavymetal.dk/api/v1/concert/33019'
             venue:
               $ref: '#/components/schemas/Venue'
             cancelled:

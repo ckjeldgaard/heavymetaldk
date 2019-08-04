@@ -3,7 +3,7 @@
 define("API_VERSION", "v1");
 define("DEFAULT_PAGE_LIMIT", 25);
 define("MAXIMUM_PAGE_LIMIT", 100);
-define("CACHE_ENABLED", TRUE);
+define("CACHE_ENABLED", FALSE);
 define("CACHE_LIFETIME_SECONDS", 900);
 
 require_once('api.admin.inc');
@@ -39,6 +39,17 @@ function api_menu() {
   );
   $items["api/" . API_VERSION . "/concert_reviews/%"] = array(
     'page callback' => '_api_concert_review',
+    'page arguments' => array(3),
+    'access arguments' => array('use rest api'),
+    'type' => MENU_CALLBACK,
+  );
+  $items["api/" . API_VERSION . "/concerts"] = array(
+    'page callback' => '_api_concerts',
+    'access arguments' => array('use rest api'),
+    'type' => MENU_CALLBACK,
+  );
+  $items["api/" . API_VERSION . "/concerts/%"] = array(
+    'page callback' => '_api_concert',
     'page arguments' => array(3),
     'access arguments' => array('use rest api'),
     'type' => MENU_CALLBACK,
@@ -306,14 +317,67 @@ function _api_concert_reviews() {
   $last_offset = $max - ($max % $limit);
 
   $links = array(
-    "next" => "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
-    "last" => "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
-    "first" => "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+    "next" => "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
   );
 
   $prev_offset = $offset-$limit;
   if ($prev_offset >= 0) {
-    $links['prev'] =  "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+    $links['prev'] =  "<" . url('api/' . API_VERSION . '/concert_reviews', array('absolute' => TRUE, 'query' => array('offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+  }
+
+  drupal_add_http_header('Link', implode(", ", $links));
+
+  drupal_json_output(array(
+    "data" => $items
+  ));
+  drupal_exit();
+}
+
+function _api_concerts() {
+  drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
+
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
+  }
+
+  $offset = (isset($_GET['offset']) && is_numeric($_GET['offset']) && $_GET['offset'] > 0) ? $_GET['offset'] : 0;
+  $limit = _limit();
+
+  $start_time_after = (isset($_GET['start_time_after']) && is_numeric($_GET['start_time_after']) && $_GET['start_time_after'] > 0) ? $_GET['start_time_after'] : 0;
+
+  // Serve data from cache
+  $items = &drupal_static(__FUNCTION__);
+  $cache_cid = "api_concerts_{$offset}_{$limit}";
+  if (empty($data)) {
+    $cache = cache_get($cache_cid);
+    if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
+      $items = $cache->data;
+    } else {
+      $items = _fetch_concerts_from_db($offset, $limit, $start_time_after);
+      cache_set($cache_cid, $items, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
+    }
+  }
+
+  $max = _maximum_concerts();
+  $last_offset = $max - ($max % $limit);
+
+  $links = array(
+    "next" => "<" . url('api/' . API_VERSION . '/concerts', array('absolute' => TRUE, 'query' => array('offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/' . API_VERSION . '/concerts', array('absolute' => TRUE, 'query' => array('offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/' . API_VERSION . '/concerts', array('absolute' => TRUE, 'query' => array('offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+  );
+
+  $prev_offset = $offset-$limit;
+  if ($prev_offset >= 0) {
+    $links['prev'] =  "<" . url('api/' . API_VERSION . '/concerts', array('absolute' => TRUE, 'query' => array('offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
   }
 
   drupal_add_http_header('Link', implode(", ", $links));
@@ -357,14 +421,14 @@ function _api_news() {
   $last_offset = $max - ($max % $limit);
 
   $links = array(
-    "next" => "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
-    "last" => "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
-    "first" => "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+    "next" => "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
   );
 
   $prev_offset = $offset-$limit;
   if ($prev_offset >= 0) {
-    $links['prev'] =  "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+    $links['prev'] =  "<" . url('api/' . API_VERSION . '/news', array('absolute' => TRUE, 'query' => array('offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
   }
 
   drupal_add_http_header('Link', implode(", ", $links));
@@ -408,14 +472,14 @@ function _api_reportages() {
   $last_offset = $max - ($max % $limit);
 
   $links = array(
-    "next" => "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
-    "last" => "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
-    "first" => "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+    "next" => "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
   );
 
   $prev_offset = $offset-$limit;
   if ($prev_offset >= 0) {
-    $links['prev'] =  "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+    $links['prev'] =  "<" . url('api/' . API_VERSION . '/reportages', array('absolute' => TRUE, 'query' => array('offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
   }
 
   drupal_add_http_header('Link', implode(", ", $links));
@@ -459,14 +523,14 @@ function _api_interviews() {
   $last_offset = $max - ($max % $limit);
 
   $links = array(
-    "next" => "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
-    "last" => "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
-    "first" => "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+    "next" => "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
   );
 
   $prev_offset = $offset-$limit;
   if ($prev_offset >= 0) {
-    $links['prev'] =  "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+    $links['prev'] =  "<" . url('api/' . API_VERSION . '/interviews', array('absolute' => TRUE, 'query' => array('offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
   }
 
   drupal_add_http_header('Link', implode(", ", $links));
@@ -554,14 +618,14 @@ function _api_reviews() {
   $last_offset = $max - ($max % $limit);
 
   $links = array(
-    "next" => "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
-    "last" => "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
-    "first" => "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
+    "next" => "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('offset' => $offset+$limit, 'limit' => $limit))) . ">; rel=\"next\"",
+    "last" => "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('offset' => $last_offset, 'limit' => $limit))) . ">; rel=\"last\"",
+    "first" => "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('offset' => 0, 'limit' => $limit))) . ">; rel=\"first\"",
   );
 
   $prev_offset = $offset-$limit;
   if ($prev_offset >= 0) {
-    $links['prev'] =  "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('api_key' => $_GET['api_key'], 'offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
+    $links['prev'] =  "<" . url('api/' . API_VERSION . '/reviews', array('absolute' => TRUE, 'query' => array('offset' => $prev_offset, 'limit' => $limit))) . ">; rel=\"prev\"";
   }
 
   drupal_add_http_header('Link', implode(", ", $links));
@@ -585,6 +649,25 @@ LIMIT {$offset}, {$limit}";
   foreach ($rs as $row) {
     $node = node_load($row->nid);
     $items[] = _output_concert_review($node, $row->published_at);
+  }
+  return $items;
+}
+
+function _fetch_concerts_from_db($offset, $limit, $start_time_after = 0) {
+  $sql = "SELECT n.nid, p.published_at
+FROM node n 
+INNER JOIN publication_date p ON p.nid = n.nid
+INNER JOIN field_data_field_event_date e ON e.entity_id = n.nid AND e.bundle = 'concert'
+WHERE n.type = :type AND n.status = :status AND e.field_event_date_value > :start_time_after
+ORDER BY e.field_event_date_value DESC 
+LIMIT {$offset}, {$limit}";
+
+  $rs = db_query($sql, array(':type' => 'concert', ':status' => 1, ':start_time_after' => $start_time_after));
+
+  $items = array();
+  foreach ($rs as $row) {
+    $node = node_load($row->nid);
+    $items[] = _output_concert_node($node, $row->published_at);
   }
   return $items;
 }
@@ -673,6 +756,12 @@ function _maximum_concert_reviews() {
   return $c['count'];
 }
 
+function _maximum_concerts() {
+  $sql = "SELECT COUNT(n.nid) AS count FROM node n WHERE type = :type AND status = :status";
+  $c = db_query($sql, array(':type' => 'concerts', ':status' => 1))->fetchAssoc();
+  return $c['count'];
+}
+
 function _maximum_interviews() {
   $sql = "SELECT COUNT(n.nid) AS count FROM node n WHERE type = :type AND status = :status";
   $c = db_query($sql, array(':type' => 'interview', ':status' => 1))->fetchAssoc();
@@ -697,6 +786,10 @@ function _api_review($nid) {
 
 function _api_concert_review($nid) {
   _handle_single_node($nid, 'concert_review', '_output_concert_review');
+}
+
+function _api_concert($nid) {
+  _handle_single_node($nid, 'concert', '_output_concert_node');
 }
 
 function _api_interview($nid) {
