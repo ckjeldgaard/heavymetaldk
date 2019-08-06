@@ -15,29 +15,29 @@ tags:
     description: Album review
     externalDocs:
       description: Browse on website
-      url: 'https://heavymetal.dk.dk/anmeldelser'
+      url: 'https://heavymetal.dk/anmeldelser'
   - name: concert
     description: Concerts and concert reviews
   - name: interview
     description: Interview
     externalDocs:
       description: Browse on website
-      url: 'https://heavymetal.dk.dk/interviews'
+      url: 'https://heavymetal.dk/interviews'
   - name: news
     description: News
     externalDocs:
       description: Browse on website
-      url: 'https://heavymetal.dk.dk/nyheder'
+      url: 'https://heavymetal.dk/nyheder'
   - name: reportage
     description: Reportage
     externalDocs:
       description: Browse on website
-      url: 'https://heavymetal.dk.dk/reportager'
+      url: 'https://heavymetal.dk/reportager'
   - name: artist
     description: Artist
     externalDocs:
       description: Browse on website
-      url: 'https://heavymetal.dk.dk/bands'
+      url: 'https://heavymetal.dk/bands'
 paths:
   '/reviews':
     get:
