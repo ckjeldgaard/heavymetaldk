@@ -130,6 +130,7 @@ EOT;
   );
   $rs = db_query($sql, $params)->fetchObject();
 
+  $ticket_price = (int) $rs->field_ticket_price_value;
   $concert = array(
     "nid" => (int) $concert_nid,
     "title" => $rs->title,
@@ -147,7 +148,7 @@ EOT;
     ),
     "meta" => array(
       "startTime" => $rs->field_start_time_value,
-      "ticketPrice" => (int) $rs->field_ticket_price_value,
+      "ticketPrice" => ($ticket_price > 0) ? $ticket_price : NULL,
       "buyLink" => $rs->field_buy_link_url,
       "facebookEventUrl" => $rs->field_facebook_event_url,
     )
