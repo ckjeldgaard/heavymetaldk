@@ -38,6 +38,8 @@ tags:
     externalDocs:
       description: Browse on website
       url: 'https://heavymetal.dk/bands'
+  - name: taxonomy
+    description: Vocabularies and terms
 paths:
   '/reviews':
     get:
@@ -493,6 +495,27 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Artist'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/genres':
+    get:
+      tags:
+        - taxonomy
+      summary: Get a list of genres
+      description: Returns a complete list of genres in alphabetical order.
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Genre'
       security:
         - api_key: []
         - basicAuth: []

@@ -93,6 +93,11 @@ function api_menu() {
     'access arguments' => array('use rest api'),
     'type' => MENU_CALLBACK,
   );
+  $items["api/" . API_VERSION . "/genres"] = array(
+    'page callback' => '_api_genres',
+    'access arguments' => array('use rest api'),
+    'type' => MENU_CALLBACK,
+  );
 
   // Administration
   $items['admin/config/api'] = array(
@@ -585,6 +590,37 @@ function theme_swagger_ui($swagger_schema) {
   return $output;
 }
 
+function _api_genres() {
+  drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
+
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
+  }
+
+  $items = &drupal_static(__FUNCTION__);
+  $cache_cid = "api_genres";
+  if (empty($data)) {
+    $cache = cache_get($cache_cid);
+    if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
+      $items = $cache->data;
+    } else {
+      $items = _fetch_terms_from_db('Genre');
+      cache_set($cache_cid, $items, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
+    }
+  }
+
+  drupal_json_output(array(
+    "data" => $items
+  ));
+  drupal_exit();
+}
+
 function _api_reviews() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
@@ -740,6 +776,22 @@ LIMIT {$offset}, {$limit}";
   foreach ($rs as $row) {
     $node = node_load($row->nid);
     $items[] = _output_review($node, $row->published_at);
+  }
+  return $items;
+}
+
+function _fetch_terms_from_db($vocabulary_machine_name) {
+  $vocabulary = taxonomy_vocabulary_machine_name_load($vocabulary_machine_name);
+  $t = entity_load('taxonomy_term', FALSE, array('vid' => $vocabulary->vid));
+
+  $items = array();
+  foreach ($t as $item) {
+    $items[] = array(
+      'tid' => (int) $item->tid,
+      'title' => $item->name,
+      'url' => url('taxonomy/term/' . $item->tid, array('absolute' => TRUE)),
+      'descriptionHtml' => (strlen($item->description) > 0) ? $item->description : NULL,
+    );
   }
   return $items;
 }
