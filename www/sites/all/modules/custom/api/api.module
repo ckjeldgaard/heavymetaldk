@@ -553,47 +553,24 @@ function _api_interviews() {
 }
 
 function _api_swagger_ui() {
-  print theme('swagger_ui');
+  global $base_url;
+  return array(
+    '#markup' => '<link rel="stylesheet" type="text/css" href="//unpkg.com/swagger-ui-dist@3/swagger-ui.css" />
+    <div id="swagger-ui"></div>
+    <script src="//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script type="text/javascript">
+    SwaggerUIBundle({
+      url: \'' . $base_url . '/api/v1/openapi.yaml\',
+      dom_id: \'#swagger-ui\'
+    })
+    </script>'
+  );
 }
 
 function _api_openapi() {
   header("content-type:text/yaml;charset=utf-8");
   $openapi_file = drupal_get_path('module', 'api') . "/templates/openapi.yaml";
   print file_get_contents($openapi_file);
-}
-
-function api_theme($existing, $type, $theme, $path) {
-  $functions = array();
-
-  $functions['swagger_ui'] = array(
-    'arguments' => array('swagger_schema' => 'swagger.json'),
-  );
-
-  return $functions;
-}
-
-function theme_swagger_ui($swagger_schema) {
-  global $base_url;
-  $output = '<!doctype html>
-  <html lang="en">
-    <head>
-      <title>Heavymetal.dk API</title>
-      <meta charset="utf-8">
-      <link rel="stylesheet" type="text/css" href="//unpkg.com/swagger-ui-dist@3/swagger-ui.css" />
-    </head>
-    <body>
-      <div id="swagger-ui"></div>
-      <script src="//unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
-      <script type="text/javascript">
-      SwaggerUIBundle({
-        url: \'' . $base_url . '/api/v1/openapi.yaml\',
-        dom_id: \'#swagger-ui\'
-      })
-      </script>
-    </body>
-  </html>
-  ';
-  return $output;
 }
 
 function _api_genres() {
