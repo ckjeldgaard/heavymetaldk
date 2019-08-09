@@ -413,7 +413,45 @@ EOT;
     "tid" => (int) $tid,
     "title" => $genre->name,
     "url" => url('taxonomy/term/' . $tid, array('absolute' => TRUE)),
+    'apiHref' => url('api/' . API_VERSION . '/genres/' . $tid, array('absolute' => TRUE))
   );
+  return $genre;
+}
+
+function _output_genre_detailed($term) {
+
+  $sql = "SELECT n.nid, n.title, n.type FROM node n INNER JOIN taxonomy_index t ON t.nid = n.nid WHERE t.tid = :tid ORDER BY n.title";
+  $refs = db_query($sql, array(":tid" => $term->tid));
+
+  $artists = array();
+  $reviews = array(); 
+  foreach ($refs as $r) {
+    if ($r->type == 'artist') {
+      $artists[] = (object) [
+        'nid' => (int) $r->nid,
+        'title' => $r->title,
+        'url' => url('node/' . $r->nid, array('absolute' => TRUE)),
+        'apiHref' => url('api/' . API_VERSION . '/artists/' . $r->nid, array('absolute' => TRUE))
+      ];
+    } else if ($r->type == 'review') {
+      $reviews[] = (object) [
+        'nid' => (int) $r->nid,
+        'title' => $r->title,
+        'url' => url('node/' . $r->nid, array('absolute' => TRUE)),
+        'apiHref' => url('api/' . API_VERSION . '/reviews/' . $r->nid, array('absolute' => TRUE))
+      ];
+    }
+  }
+
+  $genre = array(
+    "tid" => (int) $term->tid,
+    "title" => $term->name,
+    "url" => url('taxonomy/term/' . $term->tid, array('absolute' => TRUE)),
+    "descriptionHtml" => (strlen($term->description) > 0) ? $term->description : NULL,
+    'artists' => $artists,
+    'reviews' => $reviews,
+  );
+
   return $genre;
 }
 

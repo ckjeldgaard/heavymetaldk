@@ -3,7 +3,7 @@
 define("API_VERSION", "v1");
 define("DEFAULT_PAGE_LIMIT", 25);
 define("MAXIMUM_PAGE_LIMIT", 100);
-define("CACHE_ENABLED", TRUE);
+define("CACHE_ENABLED", FALSE);
 define("CACHE_LIFETIME_SECONDS", 900);
 
 require_once('api.admin.inc');
@@ -95,6 +95,12 @@ function api_menu() {
   );
   $items["api/" . API_VERSION . "/genres"] = array(
     'page callback' => '_api_genres',
+    'access arguments' => array('use rest api'),
+    'type' => MENU_CALLBACK,
+  );
+  $items["api/" . API_VERSION . "/genres/%"] = array(
+    'page callback' => '_api_genre',
+    'page arguments' => array(3),
     'access arguments' => array('use rest api'),
     'type' => MENU_CALLBACK,
   );
@@ -860,6 +866,10 @@ function _api_artist($nid) {
   _handle_single_node($nid, 'artist', '_output_artist_detailed');
 }
 
+function _api_genre($tid) {
+  _handle_single_term($tid, 'genre', '_output_genre_detailed');
+}
+
 function _handle_single_node($nid, $type, $render_function) {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
@@ -910,6 +920,63 @@ function _handle_single_node($nid, $type, $render_function) {
     $item = $cache->data;
   } else {
     $item = $render_function($node, $p['published_at']);
+    cache_set($cache_cid, $item, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
+  }
+
+  drupal_json_output(array(
+    "data" => $item
+  ));
+  drupal_exit();
+}
+
+function _handle_single_term($tid, $vocabulary, $render_function) {
+  drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
+
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
+  }
+
+  if (!is_numeric($tid)) {
+    drupal_add_http_header('Status', '400 Bad Request');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 4,
+          "message" => "The provided key parameter must be numeric."
+        )
+      )
+    ));
+    drupal_exit();
+  }
+
+  $term = taxonomy_term_load($tid);
+  if (!is_object($term) || $term->vocabulary_machine_name != $vocabulary) {
+    drupal_add_http_header('Status', '404 Not Found');
+    drupal_json_output(array(
+      "errors" => array(
+        array(
+          "code" => 5,
+          "message" => "Invalid resource specified."
+        )
+      )
+    ));
+    drupal_exit();
+  }
+
+  // Serve data from cache
+  $item = &drupal_static(__FUNCTION__);
+  $cache_cid = "api_single_term_{$vocabulary}_{$tid}";
+  $cache = cache_get($cache_cid);
+  if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
+    $item = $cache->data;
+  } else {
+    $item = $render_function($term);
     cache_set($cache_cid, $item, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
   }
 

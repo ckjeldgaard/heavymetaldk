@@ -519,6 +519,96 @@ paths:
       security:
         - api_key: []
         - basicAuth: []
+  '/genres/{termId}':
+    get:
+      tags:
+        - taxonomy
+      summary: Get a single genre with references
+      parameters:
+        - name: termId
+          in: path
+          description: Term ID of the genre to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      tid:
+                        type: integer
+                        description: Genre term ID
+                        format: int64
+                        example: 1703
+                      title:
+                        type: string
+                        example: Thrash metal
+                      url:
+                        type: string
+                        example: 'https://heavymetal.dk/genre/thrash-metal'
+                      descriptionHtml:
+                        type: string
+                        nullable: true
+                        example: '<p>Thrash metal er en genre...</p>'
+                      artists:
+                        type: array
+                        minItems: 0
+                        uniqueItems: true
+                        description: Artists referencing this genre.
+                        items:
+                          type: object
+                          properties: 
+                            nid:
+                              type: integer
+                              description: Artist node ID.
+                              format: int64
+                              example: 180
+                            title:
+                              type: string
+                              example: Slayer
+                              description: Artist name
+                            url:
+                              type: string
+                              example: 'https://heavymetal.dk/artist/slayer'
+                              description: Artist URL
+                            apiHref:
+                              type: string
+                              example: 'https://heavymetal.dk/api/v1/artists/180'
+                      reviews:
+                        type: array
+                        minItems: 0
+                        uniqueItems: true
+                        description: Album reviews referencing this genre.
+                        items:
+                          type: object
+                          properties: 
+                            nid:
+                              type: integer
+                              description: Artist node ID.
+                              format: int64
+                              example: 13701
+                            title:
+                              type: string
+                              example: Slayer - Reign in Blood
+                              description: Ŕeview title
+                            url:
+                              type: string
+                              example: 'https://heavymetal.dk/anmeldelse/slayer-reign-blood'
+                              description: Artist URL
+                            apiHref:
+                              type: string
+                              example: 'https://heavymetal.dk/api/v1/reviews/13701'
+      security:
+        - api_key: []
+        - basicAuth: []
 components:
   schemas:
     Dates:
