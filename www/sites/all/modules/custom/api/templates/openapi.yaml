@@ -609,6 +609,128 @@ paths:
       security:
         - api_key: []
         - basicAuth: []
+  '/venues':
+    get:
+      tags:
+        - taxonomy
+      summary: Get a list of venues
+      description: Returns a complete list of venues in alphabetical order.
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Venue'
+      security:
+        - api_key: []
+        - basicAuth: []
+  '/venues/{termId}':
+    get:
+      tags:
+        - taxonomy
+      summary: Get a single venue with concert references
+      parameters:
+        - name: termId
+          in: path
+          description: Term ID of the venue to return
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      tid:
+                        type: integer
+                        description: Venue term ID
+                        format: int64
+                        example: 1909
+                      title:
+                        type: string
+                        example: Royal Arena
+                      url:
+                        type: string
+                        example: 'https://heavymetal.dk/spillested/royal-arena'
+                      apiHref:
+                        type: string
+                        example: 'https://heavymetal.dk/api/v1/venues/1909'
+                      address:
+                        type: object
+                        properties:
+                          streetAddress:
+                            type: string
+                            example: 'Hannemanns Allé 18'
+                          postalCode:
+                            type: string
+                            example: '2300'
+                          city:
+                            type: string
+                            example: 'København S'
+                          countryIso:
+                            type: string
+                            example: 'DK'
+                            description: 'ISO 3166-1 alpha-2 two-letter country code.'
+                      province:
+                        type: string
+                        example: 'koebenhavn'
+                        description: 'Lower-case URL-safe name of Danish province where the venue is located.'
+                        enum:
+                          - koebenhavn
+                          - nordsjaelland
+                          - bornholm
+                          - sjaelland
+                          - fyn
+                          - syd-soenderjylland
+                          - vestjylland
+                          - midtjylland
+                          - nordjylland
+                          - udlandet
+                      website:
+                        type: string
+                        nullable: true
+                        example: null
+                        description: 'Venue website URL'
+                      concerts:
+                        type: array
+                        minItems: 0
+                        uniqueItems: true
+                        description: Concert resources referencing this venue.
+                        items:
+                          type: object
+                          properties: 
+                            nid:
+                              type: integer
+                              description: Concert node ID.
+                              format: int64
+                              example: 33019
+                            title:
+                              type: string
+                              example: Slayer - Royal Arena - 3. december 2018
+                              description: Ŕeview title
+                            url:
+                              type: string
+                              example: 'https://heavymetal.dk/koncert/slayer-royal-arena-3-december-2018'
+                              description: Artist URL
+                            apiHref:
+                              type: string
+                              example: 'https://heavymetal.dk/api/v1/concerts/33019'
+      security:
+        - api_key: []
+        - basicAuth: []
 components:
   schemas:
     Dates:

@@ -455,7 +455,27 @@ function _output_genre_detailed($term) {
   return $genre;
 }
 
+function _output_venue_detailed($term) {
+  $venue = _output_venue($term->tid);
+
+  $concerts = array();
+  $sql = "SELECT n.nid, n.title FROM node n INNER JOIN taxonomy_index t ON t.nid = n.nid INNER JOIN field_data_field_event_date d ON d.entity_id = n.nid WHERE t.tid = :tid AND n.type = :type ORDER BY d.field_event_date_value DESC";
+  $refs = db_query($sql, array(":tid" => $term->tid, ":type" => "concert"));
+  foreach ($refs as $r) {
+    $concerts[] = (object) [
+      'nid' => (int) $r->nid,
+      'title' => $r->title,
+      'url' => url('node/' . $r->nid, array('absolute' => TRUE)),
+      'apiHref' => url('api/' . API_VERSION . '/concerts/' . $r->nid, array('absolute' => TRUE))
+    ];
+  }
+  $venue['concerts'] = $concerts;
+
+  return $venue;
+}
+
 function _output_venue($tid) {
+
   $sql = <<<EOT
   SELECT t.name,
   a.field_address_thoroughfare,
@@ -477,6 +497,7 @@ EOT;
     "tid" => (int) $tid,
     "title" => $rs->name,
     "url" => url('taxonomy/term/' . $tid, array('absolute' => TRUE)),
+    "apiHref" => url('api/' . API_VERSION . '/venues/' . $tid, array('absolute' => TRUE)),
     "address" => array(
       "streetAddress" => $rs->field_address_thoroughfare,
       "postalCode" => $rs->field_address_postal_code,

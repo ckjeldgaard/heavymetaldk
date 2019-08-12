@@ -93,6 +93,8 @@ function api_menu() {
     'access arguments' => array('use rest api'),
     'type' => MENU_CALLBACK,
   );
+
+  // Vocabulary:
   $items["api/" . API_VERSION . "/genres"] = array(
     'page callback' => '_api_genres',
     'access arguments' => array('use rest api'),
@@ -100,6 +102,17 @@ function api_menu() {
   );
   $items["api/" . API_VERSION . "/genres/%"] = array(
     'page callback' => '_api_genre',
+    'page arguments' => array(3),
+    'access arguments' => array('use rest api'),
+    'type' => MENU_CALLBACK,
+  );
+  $items["api/" . API_VERSION . "/venues"] = array(
+    'page callback' => '_api_venues',
+    'access arguments' => array('use rest api'),
+    'type' => MENU_CALLBACK,
+  );
+  $items["api/" . API_VERSION . "/venues/%"] = array(
+    'page callback' => '_api_venue',
     'page arguments' => array(3),
     'access arguments' => array('use rest api'),
     'type' => MENU_CALLBACK,
@@ -604,6 +617,37 @@ function _api_genres() {
   drupal_exit();
 }
 
+function _api_venues() {
+  drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
+
+  if (!isset($_GET['api_key'])) {
+    if (!_valid_http_auth()) {
+      drupal_exit();
+    }
+  } else {
+    if (!_valid_api_key()) {
+      drupal_exit();
+    }
+  }
+
+  $items = &drupal_static(__FUNCTION__);
+  $cache_cid = "api_venues";
+  if (empty($data)) {
+    $cache = cache_get($cache_cid);
+    if (is_object($cache) && CACHE_ENABLED && REQUEST_TIME < $cache->expire) {
+      $items = $cache->data;
+    } else {
+      $items = _fetch_terms_from_db('Venue');
+      cache_set($cache_cid, $items, 'cache', (REQUEST_TIME + CACHE_LIFETIME_SECONDS));
+    }
+  }
+
+  drupal_json_output(array(
+    "data" => $items
+  ));
+  drupal_exit();
+}
+
 function _api_reviews() {
   drupal_add_http_header('Access-Control-Allow-Methods: ', 'GET');
 
@@ -845,6 +889,10 @@ function _api_artist($nid) {
 
 function _api_genre($tid) {
   _handle_single_term($tid, 'genre', '_output_genre_detailed');
+}
+
+function _api_venue($tid) {
+  _handle_single_term($tid, 'venue', '_output_venue_detailed');
 }
 
 function _handle_single_node($nid, $type, $render_function) {
