@@ -3,7 +3,7 @@ info:
   title: Heavymetal.dk API
   description: >-
     This is the official documentation for the Heavymetal.dk REST API.
-    Access to the endpoints are performed through Basic HTTP access authentication. User credentiels are available only upon request.
+    Access to the endpoints are performed through [Basic HTTP access authentication](https://tools.ietf.org/html/rfc7617). User credentiels are available only upon request.
     Authorization through an API key is still possible but deprecated.
   contact:
     url: 'https://heavymetal.dk/contact'
@@ -515,7 +515,23 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Genre'
+                      type: object
+                      properties:
+                        tid:
+                          type: integer
+                          description: Genre term ID
+                          format: int64
+                          example: 1703
+                        title:
+                          type: string
+                          example: Thrash metal
+                        url:
+                          type: string
+                          example: 'https://heavymetal.dk/genre/thrash-metal'
+                        descriptionHtml:
+                          type: string
+                          nullable: true
+                          example: '<p>Thrash metal er en genre...</p>'
       security:
         - api_key: []
         - basicAuth: []
@@ -626,7 +642,23 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Venue'
+                      type: object
+                      properties:
+                        tid:
+                          type: integer
+                          description: Venue term ID
+                          format: int64
+                          example: 1909
+                        title:
+                          type: string
+                          example: Royal Arena
+                        url:
+                          type: string
+                          example: 'https://heavymetal.dk/spillested/royal-arena'
+                        descriptionHtml:
+                          type: string
+                          nullable: true
+                          example: null
       security:
         - api_key: []
         - basicAuth: []
