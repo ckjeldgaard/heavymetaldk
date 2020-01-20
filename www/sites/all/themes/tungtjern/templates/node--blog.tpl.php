@@ -30,7 +30,7 @@
 <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
   <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
 <?php endif; ?>
-<pre><?php print_r($node->body['und'][0]); ?></pre>
+<?php print $node->body['und'][0]['safe_value']; ?>
 
 <?php if (isset($node->field_embed_code[LANGUAGE_NONE])) : ?>
 <div class="video-container">
