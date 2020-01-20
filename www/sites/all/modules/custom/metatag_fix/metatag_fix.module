@@ -12,7 +12,7 @@ function metatag_fix_preprocess_html(&$variables) {
         '#tag' => 'meta',
         '#attributes' => array(
           'property' => 'og:image',
-          'content' => image_cache('review', $node->field_release[LANGUAGE_NONE][0]['entity']->field_image[LANGUAGE_NONE][0]),
+          'content' => image_cache('review_large', $node->field_release[LANGUAGE_NONE][0]['entity']->field_image[LANGUAGE_NONE][0]),
         ),
       );
       drupal_add_html_head($element, 'review_og_image');
