@@ -30,7 +30,7 @@
 <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
   <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
 <?php endif; ?>
-<?php print $node->body['und'][0]['value']; ?>
+<?php print $node->body['und'][0]['safe_value']; ?>
 
 
 <?php if (isset($node->field_source[LANGUAGE_NONE][0]['url']) || strlen($node->artists) > 0): ?>
