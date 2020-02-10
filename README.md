@@ -19,6 +19,12 @@ docker-compose up -d --build
 
 When the web server is running, [phpMyAdmin](https://www.phpmyadmin.net/) will be available from `http://localhost:8080`.
 
+## Docker container terminal
+
+``` bash
+docker exec -u dev -it tungtjern_server bash
+```
+
 ## Importing data to MySQL database
 
 Given a backup SQL file named `backup.sql`, execute the following command to import data to the MySQL database running in the Docker image `heavymetaldk_db_1`:
