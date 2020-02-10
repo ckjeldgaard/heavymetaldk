@@ -164,6 +164,11 @@ function _preprocess_review(&$node) {
   $node->genre_label = $genre_label;
   $node->genre = $genres;
 
+  // Load ad to display below tracklist:
+  $reviews_ads_block_machine_name = "ad_groups_2201";
+  $block = module_invoke('simpleads', 'block_view', $reviews_ads_block_machine_name);
+  $node->ad = ($node->field_detektoren[LANGUAGE_NONE][0]['value'] == 0) ? $block['content'] : FALSE;
+
   // Load first genre for teaser and topfront view:
   if (isset($node->field_genre[LANGUAGE_NONE][0]['entity'])) {
     $node->first_genre = $node->field_genre[LANGUAGE_NONE][0]['entity'];

@@ -16,7 +16,7 @@
 <?php foreach ($concerts as $month => $events) : ?>
   <h2><?php print $month; ?></h2>
   <table class="event-table pure-table pure-table-horizontal pure-table-striped">
-  <?php foreach ($events as $concert) : ?>
+  <?php foreach ($events['events'] as $concert) : ?>
     <tr<?php if ($concert['cancelled']): ?> class="cancelled"<?php endif; ?> itemprop="event" itemscope itemtype="http://schema.org/Event">
       <td class="event-date" scope="row" data-label="Dato">
         <?php if ($concert['cancelled']): ?><meta itemprop="eventStatus" content="http://schema.org/EventCancelled"><?php endif; ?>
@@ -38,6 +38,7 @@
     </tr>
   <?php endforeach; ?>
   </table>
+  <p><?php print $events['ad']; ?></p>
 <?php endforeach; ?>
 <?php else : ?>
   <p><em><?php print t("Unfortunately, we couldn't find any concerts."); ?></em></p>

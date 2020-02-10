@@ -83,6 +83,9 @@ function _get_venue_tids_by_province($province) {
 }
 
 function concert_calendar_contents() {
+  $concert_ads_block_machine_name = "ad_groups_2200";
+  $block = module_invoke('simpleads', 'block_view', $concert_ads_block_machine_name);
+  $ad = $block['content'];
 
   if (isset($_GET['landsdel'])) {
     if (array_key_exists($_GET['landsdel'], _get_provinces())) {
@@ -163,22 +166,24 @@ function concert_calendar_contents() {
           $more = TRUE;
         }
         
-        $events[_month_name($row->startdate)][] = array(
-          'nid' => $row->nid,
-          'node' => $node,
-          'startdate' => _day($row->startdate),
-          'enddate' => ($row->startdate != $row->enddate) ? _day($row->enddate, 'endDate') : FALSE,
-          'artists' => $artist_string,
-          'venue' => (isset($node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($node->field_venue[LANGUAGE_NONE][0]['tid']) : '',
-          'venue_tid' => (isset($node->field_venue[LANGUAGE_NONE])) ? $node->field_venue[LANGUAGE_NONE][0]['tid'] : NULL,
-          'cancelled' => ($node->field_cancelled[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE,
-          'new' => $new,
-          'more' => $more,
+        $month_name = _month_name($row->startdate);
+        $events[$month_name]['events'][] = array(
+            'nid' => $row->nid,
+            'node' => $node,
+            'startdate' => _day($row->startdate),
+            'enddate' => ($row->startdate != $row->enddate) ? _day($row->enddate, 'endDate') : FALSE,
+            'artists' => $artist_string,
+            'venue' => (isset($node->field_venue[LANGUAGE_NONE])) ? _get_venue_name($node->field_venue[LANGUAGE_NONE][0]['tid']) : '',
+            'venue_tid' => (isset($node->field_venue[LANGUAGE_NONE])) ? $node->field_venue[LANGUAGE_NONE][0]['tid'] : NULL,
+            'cancelled' => ($node->field_cancelled[LANGUAGE_NONE][0]['value'] == 1) ? TRUE : FALSE,
+            'new' => $new,
+            'more' => $more,
         );
+        $events[$month_name]['ad'] = (_display_ad($row->startdate)) ? $ad : "";
       }
     }
   }
-  
+
   return $events;
 }
 
@@ -227,6 +232,10 @@ function _month_name($ts) {
     case 12: $name = 'December'; break;
   }
   return $name . ' ' . date('Y', $ts);
+}
+
+function _display_ad($ts) {
+  return date('n', $ts) % 2 == 0;
 }
 
 function _day($ts, $itemprop = 'startDate') {

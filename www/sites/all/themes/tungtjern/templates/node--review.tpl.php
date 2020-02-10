@@ -125,6 +125,10 @@
 </ol>
 <?php endif; ?>
 
+<?php if ($node->ad != FALSE) : ?>
+  <?php print $node->ad; ?>
+<?php endif; ?>
+
 <?php
 $block = module_invoke('related', 'block_view', 'block-related-artist');
 print render($block['content']);
