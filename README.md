@@ -6,6 +6,17 @@
 
 ## Docker instructions
 
+Create a `.env` file in the root directory with the following contents:
+
+```
+PROJECT_NAME=heavymetaldk
+
+DB_NAME=[SELECTED_DB_NAME]
+DB_USER=[SELECTED_DB_USER]
+DB_PASSWORD=[SELECTED_DB_PASSWORD]
+DB_ROOT_PASSWORD=[SELECTED_DB_ROOT_PASSWORD]
+```
+
 ``` bash
 # Run webserver and database on localhost:80
 docker-compose up
@@ -22,7 +33,7 @@ When the web server is running, [phpMyAdmin](https://www.phpmyadmin.net/) will b
 ## Docker container terminal
 
 ``` bash
-docker exec -u dev -it tungtjern_server bash
+docker exec -u dev -it heavymetaldk_server bash
 ```
 
 ## Importing data to MySQL database
