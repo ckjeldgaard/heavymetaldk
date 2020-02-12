@@ -493,3 +493,18 @@ function _preprocess_news(&$node) {
   }
   $node->artists = implode(", ", $artists);
 }
+
+/**
+ * Preprocess blog node.
+ */
+function _preprocess_blog(&$node) {
+  $artists = array();
+  if (isset($node->field_artists[LANGUAGE_NONE])) {
+    foreach ($node->field_artists[LANGUAGE_NONE] as $a) {
+      if (isset($a['entity'])) {
+        $artists[] = l($a['entity']->title, 'node/' . $a['entity']->nid);
+      }
+    }
+  }
+  $node->artists = implode(", ", $artists);
+}

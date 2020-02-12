@@ -27,6 +27,12 @@
 </p>
 <?php endif; ?>
 
+<?php if (strlen($node->artists) > 0): ?>
+  <ul class="newsmeta">
+  <li><strong><i class="fa fa-music"></i> Bands:</strong> <?php print $node->artists; ?></li>
+  </ul>
+<?php endif; ?>
+
 <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
   <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
 <?php endif; ?>
