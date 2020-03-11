@@ -39,7 +39,7 @@
       <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
         <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
       <?php endif; ?>
-      <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
+      <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
     </div>
     <div id="english" class="tab-content">
       <?php if (strlen($node->field_english[LANGUAGE_NONE][0]['summary']) > 0) : ?>
