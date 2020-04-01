@@ -104,7 +104,11 @@
 <?php endif; ?>
 
 <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
-  <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
+  <?php if (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) : ?>
+    <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
+  <?php else: ?>
+    <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
+  <?php endif; ?>
 <?php endif; ?>
 </div>
 
