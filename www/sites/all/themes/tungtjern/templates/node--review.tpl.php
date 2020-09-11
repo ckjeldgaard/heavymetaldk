@@ -99,6 +99,35 @@
 </div>
 
 <div itemprop="reviewBody">
+
+<?php if (isset($node->field_english[LANGUAGE_NONE]) && strlen($node->field_english[LANGUAGE_NONE][0]['value']) > 0): ?>
+  <ul class="reportage-tabs">
+    <li><a class="active" href="#danish"><?php print t('Danish'); ?></a></li>
+    <li><a  href="#english"><?php print t('English'); ?></a></li>
+  </ul>
+
+  <div id="reportage-content">
+    <div id="danish" class="tab-content current">
+      <?php if (strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
+        <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
+      <?php endif; ?>
+      <?php if (isset($node->body[LANGUAGE_NONE][0])) : ?>
+        <?php if (isset($node->body[LANGUAGE_NONE][0]['safe_value'])) : ?>
+          <?php print $node->body[LANGUAGE_NONE][0]['safe_value']; ?>
+        <?php else: ?>
+          <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
+        <?php endif; ?>
+      <?php endif; ?>
+    </div>
+    <div id="english" class="tab-content" lang="en">
+      <?php if (strlen($node->field_english[LANGUAGE_NONE][0]['summary']) > 0) : ?>
+        <p class="summary"><?php print $node->field_english[LANGUAGE_NONE][0]['summary']; ?></p>
+      <?php endif; ?>
+      <?php print $node->field_english[LANGUAGE_NONE][0]['value']; ?>
+    </div>
+  </div>
+<?php else: ?>
+
 <?php if (isset($node->body[LANGUAGE_NONE][0]) && strlen($node->body[LANGUAGE_NONE][0]['summary']) > 0) : ?>
   <p class="summary"><?php print $node->body[LANGUAGE_NONE][0]['summary']; ?></p>
 <?php endif; ?>
@@ -109,6 +138,8 @@
   <?php else: ?>
     <?php print $node->body[LANGUAGE_NONE][0]['value']; ?>
   <?php endif; ?>
+<?php endif; ?>
+
 <?php endif; ?>
 </div>
 
