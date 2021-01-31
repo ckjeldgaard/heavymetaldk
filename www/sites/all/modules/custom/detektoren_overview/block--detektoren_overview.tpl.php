@@ -9,6 +9,6 @@
     </div>
   </div>
 
-  <?php print views_embed_view('detektoren_anmeldelser', 'block_1'); ?>
   <?php print views_embed_view('detektoren_interviews', 'block_2'); ?>
+  <?php print views_embed_view('detektoren_anmeldelser', 'block_1'); ?>
 </div>
