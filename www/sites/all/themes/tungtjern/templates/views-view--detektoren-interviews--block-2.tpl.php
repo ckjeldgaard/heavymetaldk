@@ -1,7 +1,8 @@
+ <div class="frontpage-mosaic">
   <?php if ($rows): ?>
     <div class="view-content focus-list">
     <section class="promoted slider">
-      <?php print $rows; ?>
+      <?php print $rows; ?> 
       </section>
     </div>
   <?php elseif ($empty): ?>
@@ -9,3 +10,4 @@
       <?php print $empty; ?>
     </div>
   <?php endif; ?>
+</div>
