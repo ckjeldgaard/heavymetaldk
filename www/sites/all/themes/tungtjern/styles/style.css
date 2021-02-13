@@ -1792,6 +1792,10 @@ table.user-data, table.user-data tr, table.user-data td {
 
 }
 
+.seeking-reviewer {
+  margin-bottom: 1em;
+}
+
 .seeking-reviewer a, .user-signup a {
   display: block;
   margin: 0 auto;

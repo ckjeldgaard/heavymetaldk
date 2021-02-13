@@ -17,6 +17,11 @@
     <?php endforeach; ?>
   </section>
 
+<?php
+  $block = module_invoke('simpleads', 'block_view', 'ad_groups_2306');
+  print $block['content'];
+?>
+
   <h2><?php print t('International content'); ?></h2>
   <section class="international pure-g focus slider">
     <?php foreach($content['international'] as $n): ?>
