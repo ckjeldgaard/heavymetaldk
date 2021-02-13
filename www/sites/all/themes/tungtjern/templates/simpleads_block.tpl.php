@@ -44,10 +44,9 @@
   <div class="ad-link"><?php if(!is_null($ads_page) && !empty($ads_page)) : print l(t('Advertise with us'), $ads_page); endif; ?></div>
 </div>
 <div class="adslist">
-  <?php
-  $nodes = _simpleads_load_ads($tid, $ads_limit);
-  print _simpleads_render_ajax_template($nodes, $tid, $ads_limit);
-  ?>
+  <script type="text/javascript">
+    _simpelads_load('.simpleads-<?php print $tid; ?><?php if ($prefix) : ?>-<?php print $prefix; ?><?php endif; ?>', <?php print $tid; ?>, <?php print check_plain($ads_limit); ?>);
+  </script>
   <?php /* If you would like to modify class attrbiute, please don't forget to update 
     the first argument in function call above (_simpleads_load(...)).
   */

@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=PT+Sans">
   <?php print $styles; ?>
+  <?php print $scripts; ?>
   <?php print $head; ?>
 </head>
 <body>
@@ -18,7 +19,7 @@
     fjs.parentNode.insertBefore(js, fjs);
   }(document, 'script', 'facebook-jssdk'));</script>
   <?php print $page; ?>
-  <?php print $scripts; ?>
+  
   <?php print $page_bottom; ?>
 </body>
 </html>
