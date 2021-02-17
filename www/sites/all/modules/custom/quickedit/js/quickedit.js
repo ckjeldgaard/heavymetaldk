@@ -1,4 +1,4 @@
-(function($) {
+jQuery(document).ready(function($) {
   $('.quickedit').each(function() {
     var elm = $(this),
         className = this.className.match(/edit-(\w+)-(\d+)-?(\d+)?/),
@@ -23,4 +23,4 @@
     }
 
   });
-})(jQuery);
+});
