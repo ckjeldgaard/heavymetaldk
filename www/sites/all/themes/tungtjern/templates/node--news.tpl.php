@@ -3,7 +3,11 @@
 <div class="pure-g byline">
   <div class="pure-u-2-3 pure-u-md-4-5">
     <p class="post-meta">
-      <?php print _get_type($node->type); ?>
+      <?php if (isset($node->field_podcast_episode_id[LANGUAGE_NONE]) && isset($node->field_podcast_episode_url[LANGUAGE_NONE])) : ?>
+        <span class="type"><?php print t('Podcast'); ?></span>
+      <?php else: ?>
+        <?php print _get_type($node->type); ?>
+      <?php endif; ?>
       <span class="author">
         <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
         <?php print formatted_date($node->published_at, TRUE); ?>
@@ -48,6 +52,20 @@
 <div class="video-container">
   <iframe width="640" height="360" src="//www.youtube.com/embed/<?php print $node->field_embed_code[LANGUAGE_NONE][0]['value']; ?>?rel=0" frameborder="0" allowfullscreen></iframe>
 </div>
+<?php endif; ?>
+
+<?php if (isset($node->field_podcast_episode_id[LANGUAGE_NONE]) && isset($node->field_podcast_episode_url[LANGUAGE_NONE])) : ?>
+  <a class="spreaker-player"
+     href="<?php print $node->field_podcast_episode_url[LANGUAGE_NONE][0]['url']; ?>"
+     data-resource="episode_id=<?php print $node->field_podcast_episode_id[LANGUAGE_NONE][0]['value']; ?>"
+     data-theme="dark"
+     data-autoplay="false"
+     data-playlist="false"
+     data-cover="<?php print image_cache('top_image_og', $node->field_image[LANGUAGE_NONE][0]); ?>"
+     data-width="100%">
+    <?php print t('Listen to episode on Spreaker.'); ?>
+  </a>
+  <script async src="https://widget.spreaker.com/widgets.js"></script>
 <?php endif; ?>
 
 <?php print render($content['comments']); ?>

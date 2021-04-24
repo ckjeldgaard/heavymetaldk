@@ -135,6 +135,9 @@ function sidebar_blocks_block_info() {
   $blocks['block-radio'] = array(
     'info' => t('Radio'),
   );
+  $blocks['block-podcast'] = array(
+    'info' => t('Podcast'),
+  );
   return $blocks;
 }
 
@@ -160,6 +163,10 @@ function sidebar_blocks_block_view($delta) {
       $block['subject'] = t('Radio');
       $block['content'] = theme('block-radio', array('radio' => NULL));
       break;
+      case 'block-podcast':
+        $block['subject'] = t('Podcast');
+        $block['content'] = theme('block-podcast', array('podcast' => NULL));
+        break;
   }
   return $block;
 }
@@ -186,6 +193,11 @@ function sidebar_blocks_theme() {
     ),
     'block-radio' => array(
       'template' => 'block--radio',
+      'variables' => array('form' => NULL),
+      'path' => drupal_get_path('module', 'sidebar_blocks'),
+    ),
+    'block-podcast' => array(
+      'template' => 'block--podcast',
       'variables' => array('form' => NULL),
       'path' => drupal_get_path('module', 'sidebar_blocks'),
     ),

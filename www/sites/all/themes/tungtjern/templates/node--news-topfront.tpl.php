@@ -10,7 +10,11 @@
   <div class="pure-u-1">
   <?php endif; ?>
       <p class="post-meta">
-        <?php print _get_type($node->type); ?>
+        <?php if (isset($node->field_podcast_episode_id[LANGUAGE_NONE]) && isset($node->field_podcast_episode_url[LANGUAGE_NONE])) : ?>
+          <span class="type"><?php print t('Podcast'); ?></span>
+        <?php else: ?>
+          <?php print _get_type($node->type); ?>
+        <?php endif; ?>
         <i class="fa fa-user"></i> Af <?php print ($node->uid > 0) ? l($node->name, 'user/' . $node->uid) : t('Anonymous'); ?>,
         <time datetime="<?php print format_date($node->published_at, 'date'); ?>"><?php print format_date($node->published_at, 'displaydate'); ?></time>
       <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>

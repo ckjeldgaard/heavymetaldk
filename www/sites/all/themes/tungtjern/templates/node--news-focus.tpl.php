@@ -1,6 +1,10 @@
 <section class="focus-item <?php print get_edit_classes($node); ?>">
   <div class="focus-header">
-    <?php print _get_type($node->type); ?>
+      <?php if (isset($node->field_podcast_episode_id[LANGUAGE_NONE]) && isset($node->field_podcast_episode_url[LANGUAGE_NONE])) : ?>
+        <span class="type"><?php print t('Podcast'); ?></span>
+      <?php else: ?>
+        <?php print _get_type($node->type); ?>
+      <?php endif; ?>
     <?php if ($node->comment == COMMENT_NODE_OPEN) : ?>
       <p class="comments meta-inline"><a href="<?php print url('node/' . $node->nid); ?>#comments"><i class="fa fa-comments"></i> <?php print $node->comment_count; ?></a></p>
     <?php endif; ?>
